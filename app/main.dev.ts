@@ -9,7 +9,7 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -99,6 +99,22 @@ const createWindow = async () => {
 /**
  * Add event listeners...
  */
+ipcMain.on('openFile', async (event, options) => {
+  const { dialog } = require('electron');
+  const results = await dialog.showOpenDialog(mainWindow, options);
+  console.log(`An openFile call ocurred`);
+  if (results.filePaths) {
+    console.log(`File chosen: ${results.filePaths[0]}`);
+    const fs = require('fs');
+    fs.readFile(results.filePaths[0], 'utf-8', (err, data) => {
+      if (err) {
+        console.error(`An error ocurred reading the file :${err.message}`);
+        return;
+      }
+      event.reply('openFileReply', { data });
+    });
+  }
+});
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even

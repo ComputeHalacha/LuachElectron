@@ -1,9 +1,3 @@
-.container {
-  position: absolute;
-  top: 30%;
-  left: 10px;
-  text-align: center;
-}
 
 .container h2 {
   font-size: 5rem;
@@ -11,4 +5,26 @@
 
 .container a {
   font-size: 1.4rem;
+}
+
+.collapse.width.show {
+    transition: max-width .3s ease, min-width .3s ease;
+    width: 100%;
+    max-width: 100%;
+    min-width: initial;
+}
+.collapse.width,
+.collapsing.width {
+   max-width: 0;
+   min-width: 0;
+   width: 0;
+   transition: all .2s ease;
+}
+.collapse .flex-column {
+  max-height: 100vh;
+  overflow: auto;
+  flex-wrap: nowrap; /* Optional, if you don't want the links to form columns if they overflow */
+}
+.collapse .flex-column li {
+  width: 100%;
 }

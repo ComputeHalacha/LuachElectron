@@ -10,6 +10,6 @@ Besides for the _Niddah_ calendar functionality, Luach also shows the _Zmanim_ f
 
 The data is stored either locally on the running device in an SQLite database, or remotely on Compute servers.
 
-A mobile React-Native version of Luach can be found at [here](https://github.com/ComputeHalacha/Luach).
+The mobile React-Native version of Luach can be found at [here](https://github.com/ComputeHalacha/Luach).
 The IOS version of this app is available for IOS users at [this link](https://itunes.apple.com/us/app/luach/id1259500420)
 An Android version can be found at [this link](https://play.google.com/store/apps/details?id=com.luachandroid).

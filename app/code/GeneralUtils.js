@@ -1,7 +1,3 @@
-const GLOBALS = {};
-const DeviceInfo = {};
-const Platform = {};
-const ToastAndroid = {};
 const Alert = {};
 
 /*
@@ -14,18 +10,6 @@ export const GLOBALS = Object.freeze({
   DEFAULT_DB_PATH: '~data/luachAndroidDB.sqlite'
 });
 */
-
-export function popUpMessage(message, optionalTitle) {
-  if (GLOBALS.IS_ANDROID) {
-    ToastAndroid.showWithGravity(
-      message,
-      ToastAndroid.SHORT,
-      ToastAndroid.CENTER
-    );
-  } else {
-    Alert.alert(optionalTitle, message);
-  }
-}
 
 export async function confirm(message, title) {
   return new Promise((resolve, reject) => {
