@@ -1,8 +1,8 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "ElectronReact",
+  "name": "luach-electron",
+  "productName": "Kuach",
   "version": "1.1.1",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
+  "description": "Calendar desktop application for the Jewish women.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
@@ -52,8 +52,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.develar.ElectronReact",
+    "productName": "Luach",
+    "appId": "com.compute.LuachElectron",
     "files": [
       "dist/",
       "node_modules/",
@@ -96,53 +96,38 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate",
+      "owner": "ComputeHalacha",
+      "repo": "LuachElectron",
       "private": false
     }
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akmittal/electron-react-boilerplate.git"
+    "url": "git+https://github.com/ComputeHalacha/LuachElectron.git"
   },
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "Compute Software Solutions, LLC",
+    "email": "luach@compute.co.il",
+    "url": "https://compute.co.il/Luach"
   },
   "contributors": [
     {
-      "name": "Vikram Rangaraj",
-      "email": "vikr01@icloud.com",
-      "url": "https://github.com/vikr01"
-    },
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    },
-    {
-      "name": "Amit Mittal",
-      "email": "mittalmailbox@gmail.com",
-      "url": "https://github.com/akmittal"
+      "name": "Chaim B. Sommers",
+      "email": "cb@compute.co.il",
+      "url": "https://github.com/cbsom"
     }
   ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/akmittal/electron-react-boilerplate/issues"
-  },
   "keywords": [
-    "electron",
-    "boilerplate",
-    "react",
-    "typescript",
-    "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
+    "calendar",
+    "jewish",
+    "women",
+    "mikvah",
+    "niddah",
+    "halacha",
+    "zmanim",
+    "luach"
   ],
-  "homepage": "https://github.com/akmittal/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/ComputeHalacha/LuachElectron",
   "jest": {
     "testURL": "http://localhost/",
     "moduleNameMapper": {
@@ -285,6 +270,8 @@
     "electron-log": "^4.0.6",
     "electron-updater": "^4.2.0",
     "history": "^4.10.1",
+    "jquery": "^3.5.1",
+    "popper.js": "^1.16.1",
     "react": "^16.14.0",
     "react-bootstrap": "^1.4.0",
     "react-dom": "^16.14.0",

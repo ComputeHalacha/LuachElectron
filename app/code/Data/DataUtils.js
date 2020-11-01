@@ -216,7 +216,7 @@ export default class DataUtils {
       throw 'locationId parameter cannot be empty. Use GetAllLocations to retrieve all locations.';
     }
     try {
-      const ls = await DataUtils._queryLocations('locationId=?', [locationId]);
+      const ls = await DataUtils.queryLocations('locationId=?', [locationId]);
       if (ls.length > 0) {
         location = ls[0];
       }
@@ -307,7 +307,7 @@ export default class DataUtils {
 
   /** Returns a list of Location objects that match the search query with all the locations in the database. */
   static async GetAllLocations() {
-    return await DataUtils._queryLocations();
+    return await DataUtils.queryLocations();
   }
 
   /**
@@ -327,7 +327,7 @@ export default class DataUtils {
       where += ' and utcOffset=?';
       values.push(Utils.currUtcOffset());
     }
-    return await DataUtils._queryLocations(where, values);
+    return await DataUtils.queryLocations(where, values);
   }
 
   static async GetAllUserOccasions() {
@@ -724,7 +724,7 @@ export default class DataUtils {
    * @param {String} [whereClause] Optional whereClause should be a valid SQLite statement - such as "name = 'New York'" or "name = ?".
    * @param {[any]} [values] Array of values to be used for the whereClause if it contains any sqlite parameters - such as 'id=?'. For example, if the whereClause is "name=? and israel=?", then values should be: ['Natanya', true].
    */
-  static async _queryLocations(whereClause, values) {
+  static async queryLocations(whereClause, values) {
     const list = [];
     const results = await DataUtils.executeSql(
       `SELECT * FROM locations ${
@@ -733,7 +733,7 @@ export default class DataUtils {
       values
     );
     log('442 - Results returned from db  - in _queryLocations');
-    for (const l of results.list) {
+    results.list.forEach(l =>
       list.push(
         new Location(
           l.name,
@@ -745,9 +745,8 @@ export default class DataUtils {
           l.candles,
           l.locationId
         )
-      );
-    }
-
+      )
+    );
     return list;
   }
 

@@ -123,11 +123,13 @@ export function range(start, end) {
   if (!arguments.length) {
     throw new Error('The "end" value must be supplied');
   } else {
-    if (arguments.length < 2 || isNullish(start)) {
-      end = start;
-      start = 1;
+    let nEnd = end,
+      nStart = start;
+    if (arguments.length < 2 || isNullish(nStart)) {
+      nEnd = nStart;
+      nStart = 1;
     }
-    return Array.from({ length: end - start + 1 }, (v, i) => start + i);
+    return Array.from({ length: nEnd - nStart + 1 }, (v, i) => nStart + i);
   }
 }
 export function getRandomString(len) {
@@ -135,12 +137,18 @@ export function getRandomString(len) {
     .join(`${Math.random().toString(36)}00000000000000000`.slice(2, 18))
     .slice(0, len);
 }
+
+export function isDev() {
+  return (
+    process.env.NODE_ENV === 'development' || process.env.E2E_BUILD === 'true'
+  );
+}
 /**
  * Log message to console
  * @param {*} txt
  */
 export function log(txt, ...other) {
-  if (__DEV__) {
+  if (isDev()) {
     console.log(txt, ...other);
   }
 }
@@ -149,7 +157,7 @@ export function log(txt, ...other) {
  * @param {*} txt
  */
 export function warn(txt, ...other) {
-  if (__DEV__) {
+  if (isDev()) {
     console.warn(txt, ...other);
   }
 }
@@ -158,7 +166,7 @@ export function warn(txt, ...other) {
  * @param {*} txt
  */
 export function error(txt, ...other) {
-  if (__DEV__) {
+  if (isDev()) {
     console.error(txt, ...other);
   }
 }
@@ -168,12 +176,12 @@ export function error(txt, ...other) {
  * Default is Lakewood NJ.
  */
 export async function tryToGuessLocation() {
-  /* const timeZoneName = DeviceInfo.getTimezone();
+  const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const cityName = timeZoneName.replace(/.+\/(.+)/, '$1').replace('_', ' ');
   const foundList = await DataUtils.SearchLocations(cityName, true);
 
   log(`Device time zone is set to: ${timeZoneName}`);
-  return foundList[0] || Location.getLakewood(); */
+  return foundList[0] || Location.getLakewood();
 }
 
 /**
