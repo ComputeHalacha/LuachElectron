@@ -1,6 +1,16 @@
 import { Buffer } from 'buffer';
+import path from 'path';
+import fs, {promises} from 'fs';
 import LocalStorage from './Data/LocalStorage';
-import { log, warn, error, getFileName, getRandomString } from './GeneralUtils';
+import {
+  log,
+  warn,
+  error,
+  getFileName,
+  getRandomString,
+  GLOBALS,
+  fileExists
+} from './GeneralUtils';
 import AppData from './Data/AppData';
 import DataUtils from './Data/DataUtils';
 
@@ -139,12 +149,12 @@ export default class RemoteBackup {
 
   async uploadBackup() {
     const url = `${serverURL}/backup`,
-      dbAbsolutePath = await DataUtils.getDatabaseAbsolutePath();
+      dbAbsolutePath = DataUtils.databasePath;
     let success = false,
       message = null;
-    if (RNFS.exists(dbAbsolutePath)) {
+    if (fileExists(dbAbsolutePath)) {
       log(`Current database located successfully at ${dbAbsolutePath}`);
-      const base64 = await RNFS.readFile(dbAbsolutePath, 'base64'),
+      const base64 = await promises.readFile(dbAbsolutePath, 'base64'),
         buffer = Buffer.from(base64, 'base64');
       try {
         const response = await fetch(url, {
@@ -202,10 +212,11 @@ export default class RemoteBackup {
       try {
         log(`GET ${serverURL} - Successfully acquired backup file from server`);
         const prevPath = localStorage.databasePath,
-          // The database file is put in a folder where both android and IOS have access
-          newPath = `${
-            RNFS.DocumentDirectoryPath
-          }/${this.getNewDatabaseName()}`,
+          // The database file is put in a folder where all os's have access
+          newPath = path.join(
+            GLOBALS.APPDATA_FOLDER,
+            this.getNewDatabaseName()
+          ),
           newDbName = getFileName(newPath);
         log(`The existing database is named ${getFileName(prevPath)}
                         and was found at ${prevPath}`);
@@ -214,8 +225,8 @@ export default class RemoteBackup {
                         and its pre-populated file will be placed at ${newPath}`
         );
         // Write the file data to disc.
-        // The RNFS.writeFile function does the decoding from base 64 to binary.
-        await RNFS.writeFile(newPath, response.FileData, 'base64');
+        // The fs.writeFile function does the decoding from base 64 to binary.
+        await promises.writeFile(newPath, response.FileData, 'base64');
         log(`Successfully copied backup file to ${newPath}`);
         // Save the new database path to the local storage
         await LocalStorage.setLocalStorageValue('DATABASE_PATH', newPath);
@@ -228,7 +239,7 @@ export default class RemoteBackup {
         // Reload the global app data from the newly overwritten database file
         log('Reloaded Global.AppData from new database');
         // Delete the old database file
-        RNFS.unlink(prevPath);
+        fs.unlink(prevPath);
         log(`Deleted previous file ${prevPath}`);
         success = true;
       } catch (e) {
@@ -260,7 +271,7 @@ export default class RemoteBackup {
         return response;
       }
     }
-    return await remoteBackup.uploadBackup();
+    return remoteBackup.uploadBackup();
   }
 
   static async createFreshUserNewAccount() {

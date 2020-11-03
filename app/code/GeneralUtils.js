@@ -1,7 +1,7 @@
 import path from 'path';
 import { ipcRenderer } from 'electron';
-import fs from 'fs';
-
+import fs, { promises } from 'fs';
+import DataUtils from './Data/DataUtils';
 const Alert = {};
 
 const appDataFolder = ipcRenderer.sendSync('getPath', 'userData');
@@ -10,6 +10,7 @@ export const GLOBALS = Object.freeze({
   IS_MAC: process.platform === 'darwin',
   VALID_PIN: /^\d{4,}$/,
   APPDATA_FOLDER: appDataFolder,
+  INITIAL_DB_PATH: path.join(__dirname, '/dist/luachData.sqlite'),
   DEFAULT_DB_PATH: path.join(appDataFolder, '/luachData.sqlite')
 });
 
@@ -207,4 +208,12 @@ export function getFileName(filePath) {
 
 export function fileExists(filePath) {
   return fs.existsSync(filePath);
+}
+
+export function isFirstTimeRun() {
+  return fileExists(path.join(GLOBALS.APPDATA_FOLDER, 'firstTimeRan'));
+}
+export async function setFirstTimeRan() {
+  const filePath = path.join(GLOBALS.APPDATA_FOLDER, 'firstTimeRan');
+  return promises.writeFile(filePath, '');
 }

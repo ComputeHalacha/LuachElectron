@@ -8,8 +8,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Button, Container, Row, Col, Nav, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ipcRenderer } from 'electron';
-import os from 'os';
 import routes from '../constants/routes.json';
 import AppSettingsContext from './AppSettingsContext';
 import AppData from '../code/Data/AppData';

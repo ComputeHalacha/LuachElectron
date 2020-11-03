@@ -287,7 +287,7 @@ export default class DataUtils {
 
   /** Returns a list of Location objects that match the search query with all the locations in the database. */
   static async GetAllLocations() {
-    return await DataUtils.queryLocations();
+    return DataUtils.queryLocations();
   }
 
   /**
@@ -307,7 +307,7 @@ export default class DataUtils {
       where += ' and utcOffset=?';
       values.push(Utils.currUtcOffset());
     }
-    return await DataUtils.queryLocations(where, values);
+    return DataUtils.queryLocations(where, values);
   }
 
   static async GetAllUserOccasions() {
@@ -789,10 +789,8 @@ export default class DataUtils {
       return true;
     }
     try {
-      fs.copyFileSync(
-        path.join(__dirname, '/dist/luachData.sqlite'),
-        GLOBALS.DEFAULT_DB_PATH
-      );
+      fs.copyFileSync(GLOBALS.INITIAL_DB_PATH, GLOBALS.DEFAULT_DB_PATH);
+      DataUtils.databasePath = GLOBALS.DEFAULT_DB_PATH;
       return true;
     } catch (err) {
       error(err);

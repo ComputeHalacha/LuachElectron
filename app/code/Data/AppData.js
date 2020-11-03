@@ -15,9 +15,11 @@ import {
   warn,
   tryToGuessLocation,
   isFirstTimeRun,
+  setFirstTimeRan,
   isNullishOrFalse
 } from '../GeneralUtils';
 import RemoteBackup from '../RemoteBackup';
+
 /**
  * List of fields that have been added after the initial app launch.
  * Any that do not yet exist, will be added to the db schema during initial loading.
@@ -72,54 +74,28 @@ export default class AppData {
    */
   static async getAppData() {
     if (!global.GlobalAppData) {
+      global.IsFirstRun = isFirstTimeRun();
       global.GlobalAppData = await AppData.fromDatabase();
-      global.IsFirstRun = false;
 
-      if (await isFirstTimeRun()) {
-        const {
-          Settings,
-          EntryList,
-          KavuahList,
-          UserOccasions,
-          TaharaEvents
-        } = global.GlobalAppData;
-        /** *************
-         * In the sqlite database, the settings.location is set to Jerusalem.
-         * This is bad, as Jerusalem.Israel = true and most of our users are in the US and the UK.
-         * We can't overwrite the default database as all user data is stored in it.
-         * So we will try to determine if this is the first time the app was really ever run,
+      if (global.isFirstTimeRun) {
+        log(`global.IsFirstRun is true`);
+
+        /** *************************************************
+         * We try to determine if this is the first time the app was really ever run,
          * and if so, change the default location to a guess based on the system time zone or else Lakewood NJ.
-         * We can't blindly rely on the firstTime function to determine if this is new launch
-         * as it was put into the code after many users had already installed the app.
-         * So in addition to the firstTime check, we look for default database conditions.
-         * This is that the location is Jerusalem and all other lists are empty.
-         *************** */
-        log(`Initial Settings Location: ${Settings.location.Name}`);
-        if (
-          Settings.location.locationId === 28 &&
-          !EntryList.list.length &&
-          !UserOccasions.length &&
-          !KavuahList.length &&
-          !TaharaEvents.length
-        ) {
-          log(
-            'It has been determined that this is a first time launch. Trying to guess location'
-          );
+         ************************************************** */
 
-          const newLocation = await tryToGuessLocation();
-          await DataUtils.SetCurrentLocationOnDatabase(newLocation);
-          global.GlobalAppData.Settings.location = newLocation;
-          log(`Location has been set to: ${newLocation.Name}`);
-          // We will use this for the special welcome flash screen.
-          global.IsFirstRun = true;
-          // Create a remote backup account.
-          if (await RemoteBackup.createFreshUserNewAccount()) {
-            log(
-              'A new remote account has been created with a random username and password'
-            );
-          }
+        const newLocation = await tryToGuessLocation();
+        await DataUtils.SetCurrentLocationOnDatabase(newLocation);
+        global.GlobalAppData.Settings.location = newLocation;
+        log(`Location has been set to: ${newLocation.Name}`);
+        // Create a remote backup account.
+        if (await RemoteBackup.createFreshUserNewAccount()) {
+          log(
+            'A new remote account has been created with a random username and password'
+          );
         }
-        log(`global.IsFirstRun has been set to: ${global.IsFirstRun}`);
+        await setFirstTimeRan();
       }
     }
     return global.GlobalAppData;
@@ -198,39 +174,32 @@ export default class AppData {
    * Returns an appData instance containing all the user data from the local database file.
    */
   static async fromDatabase() {
-    let settings;
-    let occasions;
-    let entryList;
-    let kavuahList;
-    let problemOnahs;
-    let taharaEvents;
-
     // Before getting data from database, make sure that the local database schema is up to date.
     await AppData.upgradeDatabase();
 
-    settings = await DataUtils.SettingsFromDatabase().catch(err => {
+    const settings = await DataUtils.SettingsFromDatabase().catch(err => {
       warn('Error running SettingsFromDatabase.');
       error(err);
     });
-    occasions = await DataUtils.GetAllUserOccasions().catch(err => {
+    const occasions = await DataUtils.GetAllUserOccasions().catch(err => {
       warn('Error running GetAllUserOccasions.');
       error(err);
     });
-    entryList = await DataUtils.EntryListFromDatabase().catch(err => {
+    const entryList = await DataUtils.EntryListFromDatabase().catch(err => {
       warn('Error running EntryListFromDatabase.');
       error(err);
     });
-    kavuahList = await DataUtils.GetAllKavuahs(entryList).catch(err => {
+    const kavuahList = await DataUtils.GetAllKavuahs(entryList).catch(err => {
       warn('Error running GetAllKavuahs.');
       error(err);
     });
-    taharaEvents = await DataUtils.GetAllTaharaEvents().catch(err => {
+    const taharaEvents = await DataUtils.GetAllTaharaEvents().catch(err => {
       warn('Error running GetAllTaharaEvents.');
       error(err);
     });
 
     // After getting all the data, the problem onahs are set.
-    problemOnahs = entryList.getProblemOnahs(kavuahList, settings);
+    const problemOnahs = entryList.getProblemOnahs(kavuahList, settings);
 
     return new AppData(
       settings,

@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+
 import { log, error, GLOBALS } from '../GeneralUtils';
 
 const AllKeys = [
@@ -66,107 +68,72 @@ export default class LocalStorage {
   }
 
   /**
-   * Loads the current objects properties from the actual device using AsyncStorage
+   * Loads the current objects properties from localStorage
    */
   static async loadAll() {
     return new Promise((resolve, reject) => {
       try {
-        AsyncStorage.multiGet(AllKeys, (err, stores) => {
-          if (err) {
-            error('Error during AsyncStorage.multiGet for settings', err);
-            reject(err);
-          } else {
-            const ls = new LocalStorage();
-            stores.map((result, i, store) => {
-              const key = store[i][0];
-              const value = store[i][1];
-              switch (key) {
-                case 'REQUIRE_PIN':
-                  ls._requirePin = value && Boolean(JSON.parse(value));
-                  break;
-                case 'PIN':
-                  ls._PIN = JSON.parse(value);
-                  break;
-                case 'REMOTE_USERNAME':
-                  ls._remoteUserName = JSON.parse(value);
-                  break;
-                case 'REMOTE_PASSWORD':
-                  ls._remotePassword = JSON.parse(value);
-                  break;
-                case 'DATABASE_PATH':
-                  ls._databasePath = JSON.parse(value);
-                  break;
-              }
-            });
-            resolve(ls);
+        const ls = new LocalStorage();
+        AllKeys.forEach(key => {
+          const value = localStorage.getItem(key);
+          if (value !== null) {
+            switch (key) {
+              case 'REQUIRE_PIN':
+                ls._requirePin = value && Boolean(JSON.parse(value));
+                break;
+              case 'PIN':
+                ls._PIN = JSON.parse(value);
+                break;
+              case 'REMOTE_USERNAME':
+                ls._remoteUserName = JSON.parse(value);
+                break;
+              case 'REMOTE_PASSWORD':
+                ls._remotePassword = JSON.parse(value);
+                break;
+              case 'DATABASE_PATH':
+                ls._databasePath = JSON.parse(value);
+                break;
+              default:
+                break;
+            }
           }
         });
+        resolve(ls);
       } catch (er) {
         reject(er);
       }
     });
   }
 
-  async clear() {
-    await AsyncStorage.multiRemove(AllKeys);
-  }
-
-  static async setLocalStorageValue(name, value) {
+  static setLocalStorageValue(name, value) {
     try {
       if (value !== null && typeof value !== 'undefined') {
-        await AsyncStorage.setItem(name, JSON.stringify(value));
+        localStorage.setItem(name, JSON.stringify(value));
         log(`Set ${name} to ${value} in storage data`);
-      } else {
-        // Undefined or null value - if we find it in the storage, it will be removed
-        const allKeys = await AsyncStorage.getAllKeys();
-        if (allKeys.includes(name)) {
-          await AsyncStorage.removeItem(name);
-          log(`Removed ${name} from in storage data`);
-        }
+      } // Undefined or null value - if we find it in the storage, it will be removed
+      else {
+        localStorage.removeItem(name);
+        log(`Removed ${name} from in storage data`);
       }
     } catch (e) {
       error(`Failed to set ${name} to ${value} in storage data:`, e);
     }
   }
 
-  static async wasInitialized() {
-    return new Promise((resolve, reject) => {
-      try {
-        AsyncStorage.getAllKeys((err, keys) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(keys && keys.length && keys.includes('REQUIRE_PIN'));
-          }
-        });
-      } catch (e) {
-        reject(e);
-      }
-    });
+  static wasInitialized() {
+    return localStorage.getItem(AllKeys[0]) !== null;
   }
 
-  static async wasDatabasepathInitialized() {
-    return new Promise((resolve, reject) => {
-      try {
-        AsyncStorage.getAllKeys((err, keys) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(keys && keys.length && keys.includes('DATABASE_PATH'));
-          }
-        });
-      } catch (e) {
-        reject(e);
-      }
-    });
+  static wasDatabasepathInitialized() {
+    return !!localStorage.getItem('DATABASE_PATH');
   }
 
-  static async initialize(requirePin, PIN) {
-    if (!(await this.wasInitialized())) {
+  static initialize(requirePin, PIN) {
+    if (!this.wasInitialized()) {
       LocalStorage.setLocalStorageValue('REQUIRE_PIN', !!requirePin);
       LocalStorage.setLocalStorageValue('PIN', PIN);
     }
-    if (!(await this.wasDatabasepathInitialized())) {
+    if (!this.wasDatabasepathInitialized()) {
       // This is the inbuilt original database
       LocalStorage.setLocalStorageValue(
         'DATABASE_PATH',
