@@ -1,4 +1,3 @@
-
 @import '~bootstrap/scss/bootstrap';
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
@@ -9,10 +8,16 @@
 @import '~bootstrap/scss/code';
 @import '~bootstrap/scss/grid';
 
-$body-bg: #000;
-$body-color: #111;
+$body-bg: #012;
+$body-color: #def;
+$dark-bg:#131c29;
+$very-light-blue-background: #acf;
+$light-blue-background: #9bd;
+$regular-blue-background: #579;
+$darker-blue-background: #468;
+$dark-blue-background: #357;
 $theme-colors: (
-  'primary': #0074d9,
+  'primary': $light-blue-background,
   'danger': #ff4136
 );
 

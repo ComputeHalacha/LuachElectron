@@ -47,17 +47,18 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
-  if (
+  /*if (
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
   ) {
     await installExtensions();
-  }
+  }*/
 
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
     height: 728,
+    icon: path.join(__dirname, '/scroll.png'),
     webPreferences:
       process.env.NODE_ENV === 'development' || process.env.E2E_BUILD === 'true'
         ? {
@@ -114,6 +115,10 @@ ipcMain.on('openFile', async (event, options) => {
       event.reply('openFileReply', { data });
     });
   }
+});
+
+ipcMain.on('getPath', (event, arg) => {
+  event.returnValue = app.getPath(arg);
 });
 
 app.on('window-all-closed', () => {

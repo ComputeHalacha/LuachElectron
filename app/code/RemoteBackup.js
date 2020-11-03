@@ -220,7 +220,7 @@ export default class RemoteBackup {
         // Save the new database path to the local storage
         await LocalStorage.setLocalStorageValue('DATABASE_PATH', newPath);
         // Set the data base utilities to access the new database path
-        DataUtils._databasePath = newPath;
+        DataUtils.databasePath = newPath;
         log(`Set the DataUtils database path to ${newPath}`);
         // Reset the global application data object
         appData = await AppData.fromDatabase();

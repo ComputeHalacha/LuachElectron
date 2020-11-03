@@ -1,3 +1,4 @@
+@import './Custom.scss';
 
 .container h2 {
   font-size: 5rem;
@@ -8,17 +9,17 @@
 }
 
 .collapse.width.show {
-    transition: max-width .3s ease, min-width .3s ease;
-    width: 100%;
-    max-width: 100%;
-    min-width: initial;
+  transition: max-width 0.3s ease, min-width 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  min-width: initial;
 }
 .collapse.width,
 .collapsing.width {
-   max-width: 0;
-   min-width: 0;
-   width: 0;
-   transition: all .2s ease;
+  max-width: 0;
+  min-width: 0;
+  width: 0;
+  transition: all 0.2s ease;
 }
 .collapse .flex-column {
   max-height: 100vh;
@@ -27,4 +28,8 @@
 }
 .collapse .flex-column li {
   width: 100%;
+}
+
+.headerRow {
+  background-color: $dark-bg;
 }

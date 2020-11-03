@@ -1,12 +1,15 @@
-import SQLite from 'sqlite';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import fs from 'fs';
+import path from 'path';
 import {
+  GLOBALS,
+  isDev,
   isNumber,
   log,
   error,
   warn,
-  getFileName,
-  getAppBundleIdAndroid,
-  GLOBALS
+  fileExists
 } from '../GeneralUtils';
 import AppData from './AppData';
 import jDate from '../JCal/jDate';
@@ -21,35 +24,12 @@ import { TaharaEvent } from '../Chashavshavon/TaharaEvent';
 import Utils from '../JCal/Utils';
 import LocalStorage from './LocalStorage';
 
-// SQLite.DEBUG(!!__DEV__);
-// SQLite.enablePromise(true);
+if (isDev()) {
+  sqlite3.verbose();
+}
 
 export default class DataUtils {
-  static _databasePath;
-
-  static async getDatabasePath() {
-    if (DataUtils._databasePath) {
-      return DataUtils._databasePath;
-    }
-    const localStorage = await LocalStorage.loadAll();
-    DataUtils._databasePath = localStorage.databasePath;
-    return localStorage.databasePath;
-  }
-
-  /**
-   * Gets the true actual database path that the data is getting read from and written to
-   */
-  static async getDatabaseAbsolutePath() {
-    const path = await this.getDatabasePath();
-    const databasePath = path && path.replace('~', '');
-    return path
-      ? GLOBALS.IS_ANDROID
-        ? `/data/data/${getAppBundleIdAndroid()}/databases/${getFileName(
-            databasePath
-          )}`
-        : databasePath
-      : null;
-  }
+  static databasePath = GLOBALS.DEFAULT_DB_PATH;
 
   static async SettingsFromDatabase() {
     let settings;
@@ -732,7 +712,6 @@ export default class DataUtils {
       } ORDER BY name`,
       values
     );
-    log('442 - Results returned from db  - in _queryLocations');
     results.list.forEach(l =>
       list.push(
         new Location(
@@ -747,6 +726,9 @@ export default class DataUtils {
         )
       )
     );
+    log(
+      `442 - ${list.length} Locations returned from db in DataUtils.queryLocations`
+    );
     return list;
   }
 
@@ -756,60 +738,69 @@ export default class DataUtils {
    * @param {[any]} values Array of the values to be used for any sqlite parameters in the sql
    */
   static async executeSql(sql, values) {
-    const resultsList = [];
+    let resultsList = [];
     let insertId;
     let db;
 
-    const databasePath = await DataUtils.getDatabasePath();
-    const name = getFileName(databasePath); // The file name without the extension.
-    const options = { name };
-    if (databasePath === GLOBALS.DEFAULT_DB_PATH) {
-      options.createFromLocation = databasePath;
-    } else {
-      // We are loading from a restored backup.
-      // The file will be in DocumentDirectoryPath.
-      options.createFromLocation = `${name}.sqlite`;
-      options.readonly = false;
-    }
+    DataUtils.assureDatabaseExists();
+
     try {
-      const database = await SQLite.openDatabase(options);
+      const database = await open({
+        filename: DataUtils.databasePath,
+        driver: sqlite3.cached.Database
+      });
       db = database;
-      log('0120 - database is open. Starting transaction...');
-      const results = await db.executeSql(sql, values);
-      if (
-        !!results &&
-        results.length > 0 &&
-        !!results[0].rows &&
-        !!results[0].rows.item
-      ) {
-        log(
-          `0121 - the sql was executed successfully - ${results[0].rows.length.toString()} rows returned`
-        );
-        for (let i = 0; i < results[0].rows.length; i++) {
-          resultsList.push(results[0].rows.item(i));
+      log(
+        `0120 - database ${DataUtils.databasePath} is open.
+         Starting execution of ${sql} - with values ${values}`
+      );
+      if (sql.toUpperCase().startsWith('SELECT')) {
+        resultsList = await db.all(sql, values);
+        if (resultsList) {
+          log(
+            `0121 - the sql was executed successfully - ${resultsList.length} rows returned`
+          );
         }
-      } else if (!!results && isNumber(results.rowsAffected)) {
-        log(
-          `0122 - sql executed successfully - ${results.rowsAffected.toString()} rows affected`
-        );
       } else {
-        log(
-          '0123 - sql executed successfully - Results information is not available'
-        );
-      }
-      if (!!results && results.length) {
-        insertId = results[0].insertId;
+        const results = await db.run(sql, values);
+        if (results.changes) {
+          log(
+            `0122 - no-result sql was executed successfully - ${results.changes} rows affected`
+          );
+        }
+        if (results.lastID) {
+          insertId = results.lastID;
+          log(
+            `0123 - INSERT statement executed successfully - ID of inserted item is ${results.lastID}`
+          );
+        }
       }
     } catch (err) {
-      warn('0124 - error opening database');
+      warn(`0124 - error opening database - ${DataUtils.databasePath}`);
       error(err);
-      await DataUtils._closeDatabase(db);
+      await DataUtils.closeDatabase(db);
     }
 
     return { list: resultsList, id: insertId };
   }
 
-  static async _closeDatabase(db) {
+  static assureDatabaseExists() {
+    if (fileExists(DataUtils.databasePath)) {
+      return true;
+    }
+    try {
+      fs.copyFileSync(
+        path.join(__dirname, '/dist/luachData.sqlite'),
+        GLOBALS.DEFAULT_DB_PATH
+      );
+      return true;
+    } catch (err) {
+      error(err);
+      return false;
+    }
+  }
+
+  static async closeDatabase(db) {
     if (db) {
       try {
         await db.close();

@@ -1,15 +1,17 @@
+import path from 'path';
+import { ipcRenderer } from 'electron';
+import fs from 'fs';
+
 const Alert = {};
 
-/*
+const appDataFolder = ipcRenderer.sendSync('getPath', 'userData');
+
 export const GLOBALS = Object.freeze({
-  VERSION_NAME: DeviceInfo.getReadableVersion().replace(/(.+)\..+/, '$1'),
-  IS_IOS: Platform.OS === 'ios',
-  IS_ANDROID: Platform.OS === 'android',
-  BUTTON_COLOR: Platform.OS === 'android' ? '#99b' : null,
+  IS_MAC: process.platform === 'darwin',
   VALID_PIN: /^\d{4,}$/,
-  DEFAULT_DB_PATH: '~data/luachAndroidDB.sqlite'
+  APPDATA_FOLDER: appDataFolder,
+  DEFAULT_DB_PATH: path.join(appDataFolder, '/luachData.sqlite')
 });
-*/
 
 export async function confirm(message, title) {
   return new Promise((resolve, reject) => {
@@ -197,8 +199,12 @@ export function getRandomNumber(length) {
 /**
  * Gets just the filename without the path or extension.
  * Returns "test" when supplied with ".../assets/include/blah/folder/test.extension"
- * @param {String} path
+ * @param {String} filePath
  */
-export function getFileName(path) {
-  return path ? path.replace(/.+\/(.+)\..+/, '$1') : null;
+export function getFileName(filePath) {
+  return filePath ? filePath.replace(/.+\/(.+)\..+/, '$1') : null;
+}
+
+export function fileExists(filePath) {
+  return fs.existsSync(filePath);
 }

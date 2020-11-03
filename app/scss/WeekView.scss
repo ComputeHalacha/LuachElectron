@@ -1,0 +1,32 @@
+@import './Custom.scss';
+
+.cardDeck {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10vw, 0.17fr));
+  grid-gap: 0.1rem;
+  margin-top: 10px;
+}
+.singleDayCard {
+  flex: flex;
+}
+
+.cardToday {
+  border-width: 7px !important;
+  border-color: $darker-blue-background !important;
+}
+
+.cardToday .cardHeader,
+.cardToday .cardFooter {
+  border-radius: 0 !important;
+}
+.cardHeader {
+  background-color:  $regular-blue-background !important;
+}
+.cardBody {
+  background-color: $very-light-blue-background !important;
+  color: $body-bg !important;
+}
+.cardFooter {
+  background-color: $light-blue-background !important;
+  color: #000;
+}

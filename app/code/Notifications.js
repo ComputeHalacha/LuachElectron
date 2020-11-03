@@ -35,7 +35,7 @@ export function configureNotifier(onRegister, onNotification) {
         onNotification(notification);
       }
       if (
-        GLOBALS.IS_IOS &&
+        GLOBALS.IS_MAC &&
         PushNotification.FetchResult &&
         PushNotification.FetchResult
       ) {
