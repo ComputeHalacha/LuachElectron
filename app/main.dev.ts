@@ -9,6 +9,7 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
+import fs from 'fs';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
@@ -23,6 +24,24 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+const appDataFolder = app.getPath('userData');
+const GLOBALS = Object.freeze({
+  IS_MAC: process.platform === 'darwin',
+  VALID_PIN: /^\d{4,}$/,
+  APPDATA_FOLDER: appDataFolder,
+  INITIAL_DB_PATH: path.join(__dirname, '/dist/luachData.sqlite'),
+  DEFAULT_DB_PATH: path.join(appDataFolder, '/luachData.sqlite')
+});
+
+const firstRunFileName = path.join(GLOBALS.APPDATA_FOLDER, 'firstTimeRan');
+const isFirstTimeRun = () => !fs.existsSync(firstRunFileName);
+const afterFirstRun = () => fs.writeFileSync(firstRunFileName, '');
+const isFirstRun = isFirstTimeRun();
+
+console.log(GLOBALS);
+console.log(`main.dev.ts: firstRunFileName=${firstRunFileName}`);
+console.log(`main.dev.ts: isFirstRun=${isFirstRun}`);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -47,12 +66,12 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
-  /* if (
+  if (
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
   ) {
     await installExtensions();
-  } */
+  }
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -119,6 +138,18 @@ ipcMain.on('openFile', async (event, options) => {
 
 ipcMain.on('getPath', (event, arg) => {
   event.returnValue = app.getPath(arg);
+});
+
+ipcMain.on('getGlobals', event => {
+  event.returnValue = GLOBALS;
+});
+
+ipcMain.on('getIsFirstRun', event => {
+  event.returnValue = isFirstRun;
+});
+
+ipcMain.on('setAfterFirstRun', () => {
+  afterFirstRun();
 });
 
 app.on('window-all-closed', () => {

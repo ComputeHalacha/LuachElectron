@@ -1,7 +1,7 @@
 import Utils from './JCal/Utils';
 import { nowAtLocation } from './JCal/jDateUtils';
 import { NightDay } from './Chashavshavon/Onah';
-import { GLOBALS, log, range } from './GeneralUtils';
+import { getGlobals, log, range } from './GeneralUtils';
 
 const NotificationEventType = Object.freeze({
   Hefsek: 101,
@@ -35,7 +35,7 @@ export function configureNotifier(onRegister, onNotification) {
         onNotification(notification);
       }
       if (
-        GLOBALS.IS_MAC &&
+        getGlobals().IS_MAC &&
         PushNotification.FetchResult &&
         PushNotification.FetchResult
       ) {

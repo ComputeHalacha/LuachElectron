@@ -1,4 +1,19 @@
 import Location from './Location';
+import DataUtils from '../Data/DataUtils';
+import { log } from '../GeneralUtils';
+/**
+ * Tries to guess the users location from the set time zone name and current utcoffset.
+ * Default is Lakewood NJ.
+ */
+export async function tryToGuessLocation() {
+  const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const cityName = timeZoneName.replace(/.+\/(.+)/, '$1').replace('_', ' ');
+  const foundList = await DataUtils.SearchLocations(cityName, true);
+
+  log(`Device time zone is set to: ${timeZoneName}`);
+  return foundList[0] || Location.getLakewood();
+}
+
 /**
  * A list of almost 1000 Locations throughout the world
  */

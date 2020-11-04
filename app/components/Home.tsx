@@ -1,35 +1,30 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  faBars,
-  faCalendarDay,
-  faCalendarWeek,
-  faCalendar
-} from '@fortawesome/free-solid-svg-icons';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { Button, Container, Row, Col, Nav, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import routes from '../constants/routes.json';
-import AppSettingsContext from './AppSettingsContext';
+import AppDataContext from './AppDataContext';
 import AppData from '../code/Data/AppData';
 import jDate from '../code/JCal/jDate';
+import Utils from '../code/JCal/Utils';
 import DayView from './DayView';
 import WeekView from './WeekView';
 import MonthView from './MonthView';
+import SettingsView from './SettingsView';
+import EntriesView from './EntriesView';
+import FlaggedDatesView from './FlaggedDatesView';
+import KavuahsView from './KavuahsView';
+import OccasionsView from './OccasionsView';
+import LuachNav from './LuachNav';
 import styles from '../scss/Home.scss';
 
 export default function Home() {
-  const settings = useContext(AppSettingsContext);
+  const { appData, setAppData } = useContext(AppDataContext);
   const [showMenu, setShowMenu] = useState(true);
-  const [appData, setAppData] = useState(new AppData());
-  const [homeViewType, sethomeViewType] = useState('day');
-  useEffect(() => {
-    async function getAppData() {
-      setAppData(await AppData.getAppData());
-    }
-
-    getAppData();
-  });
+  const [homeViewType, setHomeViewType] = useState('day');
   const jd = new jDate();
+
   function View() {
     switch (homeViewType) {
       case 'day':
@@ -38,6 +33,16 @@ export default function Home() {
         return <WeekView />;
       case 'month':
         return <MonthView />;
+      case 'settings':
+        return <SettingsView />;
+      case 'flaggedDates':
+        return <FlaggedDatesView />;
+      case 'entries':
+        return <EntriesView />;
+      case 'kavuahs':
+        return <KavuahsView />;
+      case 'occasions':
+        return <OccasionsView />;
       default:
         return <DayView />;
     }
@@ -54,18 +59,18 @@ export default function Home() {
           />
         </Col>
         <Col xs="9">
-          <h3>{appData.Settings.location.name}</h3>
+          <h3>{`Location - ${appData.Settings.location.Name}`}</h3>
         </Col>
         <Col xs="2">
           <ListGroup horizontal color="primary">
-            <ListGroup.Item onClick={() => sethomeViewType('day')}>
-              <FontAwesomeIcon style={{ maxWidth: 25 }} icon={faCalendarDay} />
+            <ListGroup.Item onClick={() => setHomeViewType('day')}>
+              TEST 1
             </ListGroup.Item>
-            <ListGroup.Item onClick={() => sethomeViewType('week')}>
-              <FontAwesomeIcon style={{ maxWidth: 25 }} icon={faCalendarWeek} />
+            <ListGroup.Item onClick={() => setHomeViewType('week')}>
+              TEST 2
             </ListGroup.Item>
-            <ListGroup.Item onClick={() => sethomeViewType('month')}>
-              <FontAwesomeIcon style={{ maxWidth: 25 }} icon={faCalendar} />
+            <ListGroup.Item onClick={() => setHomeViewType('month')}>
+              TEST 3
             </ListGroup.Item>
           </ListGroup>
         </Col>
@@ -83,48 +88,11 @@ export default function Home() {
           >
             <span aria-hidden="true">&times;</span>
           </Button>
-          <ul className="nav flex-column navbar-dark sticky-top">
-            <li className="nav-item">
-              <a className="nav-link active" href="#">
-                Active
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                Link
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                Link
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link disabled" href="#">
-                Disabled
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link disabled" href="#">
-                Disabled
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link disabled" href="#">
-                Disabled
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link disabled" href="#">
-                Disabled
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link disabled" href="#">
-                Disabled
-              </a>
-            </li>
-          </ul>
+          <LuachNav
+            className="flex-column navbar-dark sticky-top"
+            homeViewType={homeViewType}
+            setHomeViewType={setHomeViewType}
+          />
         </Col>
       </Row>
       <Row className="justify-content-md-center">
@@ -132,40 +100,20 @@ export default function Home() {
       </Row>
       <Row className="justify-content-md-center">
         <h4 className="check">
-          {`Home - ${settings.showOhrZeruah} and today is ${jd.toString()}`}
+          {`Today is ${jd.toString()} ${Utils.toStringDate(
+            jd.getDate(),
+            true
+          )}`}
         </h4>
       </Row>
       <Row>
         <Col xs="12">
-          <Nav variant="tabs" defaultActiveKey="day">
-            <Nav.Item>
-              <Nav.Link eventKey="day" onClick={() => sethomeViewType('day')}>
-                <FontAwesomeIcon
-                  style={{ maxWidth: 25 }}
-                  icon={faCalendarDay}
-                />
-                &nbsp;Days View
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="week" onClick={() => sethomeViewType('week')}>
-                <FontAwesomeIcon
-                  style={{ maxWidth: 25 }}
-                  icon={faCalendarWeek}
-                />
-                &nbsp;Week View
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                eventKey="month"
-                onClick={() => sethomeViewType('month')}
-              >
-                <FontAwesomeIcon style={{ maxWidth: 25 }} icon={faCalendar} />
-                &nbsp;Month View
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
+          <LuachNav
+            variant="tabs"
+            defaultActiveKey="day"
+            homeViewType={homeViewType}
+            setHomeViewType={setHomeViewType}
+          />
         </Col>
       </Row>
       <Row className="mt-3">

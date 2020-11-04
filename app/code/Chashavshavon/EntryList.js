@@ -1,4 +1,4 @@
-import { isNumber } from '../GeneralUtils';
+import { isNumber, log } from '../GeneralUtils';
 import Entry from './Entry';
 import FlaggedDatesGenerator from './FlaggedDatesGenerator';
 
@@ -88,11 +88,11 @@ export default class EntryList {
    */
   lastEntry() {
     let latest;
-    for (const entry of this.list) {
+    this.list.foreach(entry => {
       if (!latest || entry.date.Abs > latest.date.Abs) {
         latest = entry;
       }
-    }
+    });
     return latest;
   }
 

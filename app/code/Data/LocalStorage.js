@@ -1,7 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 
-import { log, error, GLOBALS } from '../GeneralUtils';
+import { log, error, getGlobals } from '../GeneralUtils';
 
+const globals = getGlobals();
 const AllKeys = [
   'REQUIRE_PIN',
   'PIN',
@@ -19,7 +20,7 @@ export default class LocalStorage {
     this._PIN = null;
     this._remoteUserName = null;
     this._remotePassword = null;
-    this._databasePath = GLOBALS.DEFAULT_DB_PATH;
+    this._databasePath = globals.DEFAULT_DB_PATH;
   }
 
   get requirePin() {
@@ -59,7 +60,7 @@ export default class LocalStorage {
   }
 
   get databasePath() {
-    return this._databasePath || GLOBALS.DEFAULT_DB_PATH;
+    return this._databasePath || globals.DEFAULT_DB_PATH;
   }
 
   set databasePath(val) {
@@ -137,7 +138,7 @@ export default class LocalStorage {
       // This is the inbuilt original database
       LocalStorage.setLocalStorageValue(
         'DATABASE_PATH',
-        GLOBALS.DEFAULT_DB_PATH
+        globals.DEFAULT_DB_PATH
       );
     }
   }

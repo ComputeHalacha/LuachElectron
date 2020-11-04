@@ -1,9 +1,8 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import fs from 'fs';
-import path from 'path';
 import {
-  GLOBALS,
+  getGlobals,
   isDev,
   isNumber,
   log,
@@ -29,7 +28,7 @@ if (isDev()) {
 }
 
 export default class DataUtils {
-  static databasePath = GLOBALS.DEFAULT_DB_PATH;
+  static databasePath = getGlobals().DEFAULT_DB_PATH;
 
   static async SettingsFromDatabase() {
     let settings;
@@ -166,7 +165,7 @@ export default class DataUtils {
         'SELECT * from entries ORDER BY dateAbs, day'
       );
       if (results.list.length > 0) {
-        for (const e of results.list) {
+        entryList.forEach(e => {
           const onah = new Onah(
             new jDate(e.dateAbs),
             e.day ? NightDay.Day : NightDay.Night
@@ -180,7 +179,7 @@ export default class DataUtils {
               e.comments
             )
           );
-        }
+        });
         entryList.calculateHaflagas();
       }
     } catch (err) {
@@ -439,36 +438,21 @@ export default class DataUtils {
   static async GetAllTaharaEvents() {
     let list = [];
     try {
-      // Because this table was added after the app launched, we add it if needed during app load.
-      await DataUtils.executeSql(
-        `CREATE TABLE IF NOT EXISTS taharaEvents (
-                    taharaEventId INTEGER PRIMARY KEY ASC
-                                    UNIQUE
-                                    NOT NULL,
-                    dateAbs  INTEGER NOT NULL,
-                    taharaEventType  INTEGER NOT NULL);`
+      const results = await DataUtils.executeSql(
+        'SELECT * from taharaEvents ORDER BY dateAbs'
       );
-      try {
-        const results = await DataUtils.executeSql(
-          'SELECT * from taharaEvents ORDER BY dateAbs'
-        );
-        list = results.list.map(
-          te =>
-            new TaharaEvent(
-              new jDate(te.dateAbs),
-              te.taharaEventType,
-              te.taharaEventId
-            )
-        );
-      } catch (err) {
-        warn('Error trying to get all taharaEvents from the database.');
-        error(err);
-      }
+      list = results.list.map(
+        te =>
+          new TaharaEvent(
+            new jDate(te.dateAbs),
+            te.taharaEventType,
+            te.taharaEventId
+          )
+      );
     } catch (err) {
-      warn('Error trying to create taharaEvents table on the database.');
+      warn('Error trying to get all taharaEvents from the database.');
       error(err);
     }
-
     return list;
   }
 
@@ -789,8 +773,9 @@ export default class DataUtils {
       return true;
     }
     try {
-      fs.copyFileSync(GLOBALS.INITIAL_DB_PATH, GLOBALS.DEFAULT_DB_PATH);
-      DataUtils.databasePath = GLOBALS.DEFAULT_DB_PATH;
+      const globals = getGlobals();
+      fs.copyFileSync(globals.INITIAL_DB_PATH, globals.DEFAULT_DB_PATH);
+      DataUtils.databasePath = globals.DEFAULT_DB_PATH;
       return true;
     } catch (err) {
       error(err);

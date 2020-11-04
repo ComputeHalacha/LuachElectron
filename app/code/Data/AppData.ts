@@ -1,37 +1,39 @@
+import { useContext } from 'react';
 import DataUtils from './DataUtils';
 import Settings from '../Settings';
 import Entry from '../Chashavshavon/Entry';
 import { Kavuah } from '../Chashavshavon/Kavuah';
 import EntryList from '../Chashavshavon/EntryList';
+import { UserOccasion } from '../JCal/UserOccasion';
+import ProblemOnah from '../Chashavshavon/ProblemOnah';
+import { TaharaEvent } from '../Chashavshavon/TaharaEvent';
 import {
   resetDayOnahReminders,
   resetNightOnahReminders,
   removeAllDayOnahReminders,
   removeAllNightOnahReminders
 } from '../Notifications';
-import {
-  log,
-  error,
-  warn,
-  tryToGuessLocation,
-  isFirstTimeRun,
-  setFirstTimeRan,
-  isNullishOrFalse
-} from '../GeneralUtils';
-import RemoteBackup from '../RemoteBackup';
+import { error, warn, isNullishOrFalse } from '../GeneralUtils';
+import AppDataContext from '../../components/AppDataContext';
 
 /**
  * List of fields that have been added after the initial app launch.
  * Any that do not yet exist, will be added to the db schema during initial loading.
  * Optionally sets an async callback to run after the field has been added.
  */
-const addedFields = [];
+const addedFields: string[] = [];
 
 /**
  * An single object that contains all the application data.
  * Ideally, there should only be a single global instance of this class.
  */
 export default class AppData {
+  Settings: Settings;
+  UserOccasions: UserOccasion[];
+  EntryList: EntryList;
+  KavuahList: Kavuah[];
+  ProblemOnahs: ProblemOnah[];
+  TaharaEvents: TaharaEvent[];
   /**
    * @param {Settings} settings
    * @param {[UserOccasion]} occasions
@@ -41,12 +43,12 @@ export default class AppData {
    * @param {[TaharaEvent]} taharaEvents
    */
   constructor(
-    settings,
-    occasions,
-    entryList,
-    kavuahList,
-    problemOnahs,
-    taharaEvents
+    settings: Settings,
+    occasions: UserOccasion[],
+    entryList: EntryList,
+    kavuahList: Kavuah[],
+    problemOnahs: ProblemOnah[],
+    taharaEvents: TaharaEvent[]
   ) {
     this.Settings = settings || new Settings({});
     this.UserOccasions = occasions || [];
@@ -61,7 +63,7 @@ export default class AppData {
    */
   updateProbs() {
     this.EntryList.calculateHaflagas();
-    let probs = [];
+    let probs: ProblemOnah[] = [];
     if (this.EntryList.list.length > 0) {
       probs = this.EntryList.getProblemOnahs(this.KavuahList, this.Settings);
     }
@@ -69,36 +71,12 @@ export default class AppData {
   }
 
   /**
-   * Returns the global appData object.
+   * Returns the appData object.
    * The first time this function is called, the global object is filled with the data from the local database file.
    */
   static async getAppData() {
-    if (!global.GlobalAppData) {
-      global.IsFirstRun = isFirstTimeRun();
-      global.GlobalAppData = await AppData.fromDatabase();
-
-      if (global.isFirstTimeRun) {
-        log(`global.IsFirstRun is true`);
-
-        /** *************************************************
-         * We try to determine if this is the first time the app was really ever run,
-         * and if so, change the default location to a guess based on the system time zone or else Lakewood NJ.
-         ************************************************** */
-
-        const newLocation = await tryToGuessLocation();
-        await DataUtils.SetCurrentLocationOnDatabase(newLocation);
-        global.GlobalAppData.Settings.location = newLocation;
-        log(`Location has been set to: ${newLocation.Name}`);
-        // Create a remote backup account.
-        if (await RemoteBackup.createFreshUserNewAccount()) {
-          log(
-            'A new remote account has been created with a random username and password'
-          );
-        }
-        await setFirstTimeRan();
-      }
-    }
-    return global.GlobalAppData;
+    const { appData } = useContext(AppDataContext);
+    return appData;
   }
 
   /**
@@ -107,7 +85,7 @@ export default class AppData {
    * @param {Entry | Kavuah} item
    * @param {Boolean} remove
    */
-  static updateGlobalProbs(item, remove) {
+  static updateGlobalProbs(item: Entry | Kavuah, remove: Boolean) {
     AppData.getAppData().then(appData => {
       if (item) {
         if (!remove) {
@@ -146,7 +124,7 @@ export default class AppData {
    */
   static async upgradeDatabase() {
     // First get a list of tables that may need updating.
-    const tablesToChange = [];
+    const tablesToChange: [] = [];
     for (const af of addedFields) {
       if (!tablesToChange.includes(af.table)) {
         tablesToChange.push(af.table);
@@ -175,7 +153,7 @@ export default class AppData {
    */
   static async fromDatabase() {
     // Before getting data from database, make sure that the local database schema is up to date.
-    await AppData.upgradeDatabase();
+    //await AppData.upgradeDatabase();
 
     const settings = await DataUtils.SettingsFromDatabase().catch(err => {
       warn('Error running SettingsFromDatabase.');

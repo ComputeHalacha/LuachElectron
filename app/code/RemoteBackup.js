@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 import path from 'path';
-import fs, {promises} from 'fs';
+import fs, { promises } from 'fs';
 import LocalStorage from './Data/LocalStorage';
 import {
   log,
@@ -8,8 +8,10 @@ import {
   error,
   getFileName,
   getRandomString,
-  GLOBALS,
-  fileExists
+  getGlobals,
+  fileExists,
+  isDev,
+  getNewDatabaseName
 } from './GeneralUtils';
 import AppData from './Data/AppData';
 import DataUtils from './Data/DataUtils';
@@ -41,19 +43,13 @@ To enable the domain compute.dev for use from an android device:
  3: Back in the Android device or emulator, open the browser and navigate to compute.dev.
     If you get your local site then, Mazel Tov.
  */
-const serverURL =
-  /* __DEV__
-    ? 'http://compute.dev/api/luach'
-    : */ 'https://www.compute.co.il/api/luach';
+const serverURL = isDev()
+  ? 'https://compute.dev/api/luach'
+  : 'https://www.compute.co.il/api/luach';
 
 export default class RemoteBackup {
   constructor() {
     this.localStorage = null;
-  }
-
-  getNewDatabaseName() {
-    const d = new Date();
-    return `${d.getDate()}-${d.getMonth()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.sqlite`;
   }
 
   async getLastBackupDate() {
@@ -214,8 +210,8 @@ export default class RemoteBackup {
         const prevPath = localStorage.databasePath,
           // The database file is put in a folder where all os's have access
           newPath = path.join(
-            GLOBALS.APPDATA_FOLDER,
-            this.getNewDatabaseName()
+            getGlobals().APPDATA_FOLDER,
+            getNewDatabaseName()
           ),
           newDbName = getFileName(newPath);
         log(`The existing database is named ${getFileName(prevPath)}

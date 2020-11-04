@@ -1,18 +1,15 @@
 import path from 'path';
 import { ipcRenderer } from 'electron';
 import fs, { promises } from 'fs';
-import DataUtils from './Data/DataUtils';
+
 const Alert = {};
 
-const appDataFolder = ipcRenderer.sendSync('getPath', 'userData');
-
-export const GLOBALS = Object.freeze({
-  IS_MAC: process.platform === 'darwin',
-  VALID_PIN: /^\d{4,}$/,
-  APPDATA_FOLDER: appDataFolder,
-  INITIAL_DB_PATH: path.join(__dirname, '/dist/luachData.sqlite'),
-  DEFAULT_DB_PATH: path.join(appDataFolder, '/luachData.sqlite')
-});
+/**
+ * @returns {{IS_MAC:boolean, VALID_PIN:RegExp,APPDATA_FOLDER:string,INITIAL_DB_PATH:string,DEFAULT_DB_PATH:string }}
+ */
+export function getGlobals() {
+  return ipcRenderer.sendSync('getGlobals');
+}
 
 export async function confirm(message, title) {
   return new Promise((resolve, reject) => {
@@ -175,19 +172,6 @@ export function error(txt, ...other) {
 }
 
 /**
- * Tries to guess the users location from the set time zone name and current utcoffset.
- * Default is Lakewood NJ.
- */
-export async function tryToGuessLocation() {
-  const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const cityName = timeZoneName.replace(/.+\/(.+)/, '$1').replace('_', ' ');
-  const foundList = await DataUtils.SearchLocations(cityName, true);
-
-  log(`Device time zone is set to: ${timeZoneName}`);
-  return foundList[0] || Location.getLakewood();
-}
-
-/**
  * Get a random number of the specified length.
  * @param {Number} length
  */
@@ -210,10 +194,7 @@ export function fileExists(filePath) {
   return fs.existsSync(filePath);
 }
 
-export function isFirstTimeRun() {
-  return fileExists(path.join(GLOBALS.APPDATA_FOLDER, 'firstTimeRan'));
-}
-export async function setFirstTimeRan() {
-  const filePath = path.join(GLOBALS.APPDATA_FOLDER, 'firstTimeRan');
-  return promises.writeFile(filePath, '');
+export function getNewDatabaseName() {
+  const d = new Date();
+  return `${d.getDate()}-${d.getMonth()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.sqlite`;
 }
