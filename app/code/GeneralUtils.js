@@ -1,6 +1,8 @@
-import path from 'path';
 import { ipcRenderer } from 'electron';
-import fs, { promises } from 'fs';
+import fs from 'fs';
+import { tryToGuessLocation } from './JCal/Locations';
+import DataUtils from './Data/DataUtils';
+import RemoteBackup from './RemoteBackup';
 
 const Alert = {};
 
@@ -197,4 +199,26 @@ export function fileExists(filePath) {
 export function getNewDatabaseName() {
   const d = new Date();
   return `${d.getDate()}-${d.getMonth()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.sqlite`;
+}
+
+export async function initFirstRun() {
+  log('GeneralUtils.initFirstRun(): IsFirstRun is true.');
+  /** *********************************************************************
+   * If this is the first time the app was run after a fresh installation,
+   * we change the default location to a guess based
+   * on the system time zone or else Lakewood NJ.
+   *********************************************************************** */
+  const newLocation = await tryToGuessLocation();
+  log(
+    `GeneralUtils.initFirstRun(): Guessed location is ${newLocation &&
+      newLocation.Name}.`
+  );
+  await DataUtils.SetCurrentLocationOnDatabase(newLocation);
+  log(`Location has been set to: ${newLocation.Name}`);
+  // Create a remote backup account.
+  if (await RemoteBackup.createFreshUserNewAccount()) {
+    log(
+      'GeneralUtils.initFirstRun(): A new remote account has been created with a random username and password'
+    );
+  }
 }

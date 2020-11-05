@@ -5,7 +5,6 @@ import { Button, Container, Row, Col, Nav, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import routes from '../constants/routes.json';
 import AppDataContext from './AppDataContext';
-import AppData from '../code/Data/AppData';
 import jDate from '../code/JCal/jDate';
 import Utils from '../code/JCal/Utils';
 import DayView from './DayView';

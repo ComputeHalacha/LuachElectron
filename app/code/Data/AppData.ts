@@ -75,8 +75,8 @@ export default class AppData {
    * The first time this function is called, the global object is filled with the data from the local database file.
    */
   static async getAppData() {
-    const { appData } = useContext(AppDataContext);
-    return appData;
+    const { appData, setAppData } = useContext(AppDataContext);
+    return { appData, setAppData };
   }
 
   /**
@@ -85,8 +85,8 @@ export default class AppData {
    * @param {Entry | Kavuah} item
    * @param {Boolean} remove
    */
-  static updateGlobalProbs(item: Entry | Kavuah, remove: Boolean) {
-    AppData.getAppData().then(appData => {
+  static updateGlobalProbs(item?: Entry | Kavuah, remove?: Boolean) {
+    AppData.getAppData().then(({ appData, setAppData }) => {
       if (item) {
         if (!remove) {
           if (item instanceof Entry) {
@@ -115,6 +115,7 @@ export default class AppData {
       } else {
         resetNightOnahReminders(appData);
       }
+      setAppData(appData);
     });
   }
 

@@ -138,7 +138,7 @@ export default class DataUtils {
           settings.remindNightOnahHour
         ]
       );
-      await AppData.updateGlobalProbs();
+      AppData.updateGlobalProbs();
     } catch (err) {
       warn('Error trying to enter settings into the database.');
       error(err);
