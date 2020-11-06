@@ -30,7 +30,7 @@ const GLOBALS = Object.freeze({
   IS_MAC: process.platform === 'darwin',
   VALID_PIN: /^\d{4,}$/,
   APPDATA_FOLDER: appDataFolder,
-  INITIAL_DB_PATH: path.join(__dirname, '/dist/luachData.sqlite'),
+  INITIAL_DB_PATH: path.join(__dirname, '/internals/luachData.sqlite'),
   DEFAULT_DB_PATH: path.join(appDataFolder, '/luachData.sqlite')
 });
 

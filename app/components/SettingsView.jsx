@@ -1,10 +1,19 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, Card, Form, Button, Row, Col } from 'react-bootstrap';
+import {
+  Container,
+  Card,
+  Form,
+  Button,
+  Row,
+  Col,
+  Modal
+} from 'react-bootstrap';
 import AppDataContext from './AppDataContext';
 import styles from '../scss/SettingsView.scss';
 
 export default function SettingsView(props) {
   const { appData, setAppData } = useContext(AppDataContext);
+  const [showLocations, setShowLocations] = useState(false);
 
   return (
     <Container fluid>
@@ -23,10 +32,23 @@ export default function SettingsView(props) {
               <Form>
                 <Form.Group controlId="formBasicEmail">
                   <Form.Label>Choose your location</Form.Label>
-                  <Form.Control type="email" placeholder="Enter email" />
+                  <Form.Control
+                    type="email"
+                    value={appData.Settings.location.Name}
+                    onBeforeInput={() => setShowLocations(!showLocations)}
+                    placeholder="Choose your location"
+                  />
                   <Form.Text className="text-muted">
                     Zmanim depend on your location
                   </Form.Text>
+                  {showLocations && (
+                    <Modal>
+                      <ChooseLocation
+                        appData={appData}
+                        setAppData={setAppData}
+                      />
+                    </Modal>
+                  )}
                 </Form.Group>
                 <Form.Group controlId="showOhrZeruah">
                   <Form.Check
@@ -44,6 +66,7 @@ export default function SettingsView(props) {
                 </Form.Group>
                 <Form.Group controlId="keepThirtyOne">
                   <Form.Check
+                    size="lg"
                     type="switch"
                     id="keepThirtyOne"
                     label="Keep day Thirty One for Onah Beinonis"
@@ -94,8 +117,8 @@ export default function SettingsView(props) {
             <Card.Body className={styles.cardBody}>
               <Form>
                 <Form.Group controlId="navigateBySecularDate">
-                <Form.Text>Calendar displays current:</Form.Text>
-                Jewish Date
+                  <Form.Text>Calendar displays current:</Form.Text>
+                  Jewish Date
                   <Form.Check
                     type="switch"
                     id="navigateBySecularDate"
