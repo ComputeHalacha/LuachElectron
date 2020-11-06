@@ -25,18 +25,25 @@ export default class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-const appDataFolder = app.getPath('userData');
+const appDataFolder = path.join(app.getPath('userData'), '/Luach');
 const GLOBALS = Object.freeze({
   IS_MAC: process.platform === 'darwin',
   VALID_PIN: /^\d{4,}$/,
   APPDATA_FOLDER: appDataFolder,
-  INITIAL_DB_PATH: path.join(__dirname, '/internals/luachData.sqlite'),
+  INITIAL_DB_PATH: path.join(app.getAppPath(), '/luachData.sqlite'),
   DEFAULT_DB_PATH: path.join(appDataFolder, '/luachData.sqlite')
 });
 
 const firstRunFileName = path.join(GLOBALS.APPDATA_FOLDER, 'firstTimeRan');
 const isFirstTimeRun = () => !fs.existsSync(firstRunFileName);
-const afterFirstRun = () => fs.writeFileSync(firstRunFileName, '');
+const afterFirstRun = () => {
+  if (!fs.existsSync(GLOBALS.APPDATA_FOLDER)) {
+    fs.mkdir(GLOBALS.APPDATA_FOLDER, { recursive: true }, err => {
+      if (err) throw err;
+    });
+  }
+  fs.writeFileSync(firstRunFileName, '');
+};
 const isFirstRun = isFirstTimeRun();
 
 console.log(GLOBALS);

@@ -774,12 +774,43 @@ export default class DataUtils {
     }
     try {
       const globals = getGlobals();
-      fs.copyFileSync(globals.INITIAL_DB_PATH, globals.DEFAULT_DB_PATH);
-      DataUtils.databasePath = globals.DEFAULT_DB_PATH;
-      return true;
+      DataUtils.assureAppDataFolderExists();
+      log(
+        `${DataUtils.databasePath} was not found.
+        Starting copy from ${globals.INITIAL_DB_PATH} to ${globals.DEFAULT_DB_PATH}`
+      );
+      if (!fs.existsSync(globals.INITIAL_DB_PATH)) {
+        throw `File is missing: ${globals.INITIAL_DB_PATH}`;
+      }
+      try {
+        fs.copyFileSync(globals.INITIAL_DB_PATH, globals.DEFAULT_DB_PATH);
+        DataUtils.databasePath = globals.DEFAULT_DB_PATH;
+        return true;
+      } catch (err) {
+        error(err);
+        log(
+          `Failed to copy ${globals.INITIAL_DB_PATH} to ${globals.DEFAULT_DB_PATH} due to error ${err.message}`
+        );
+        return false;
+      }
     } catch (err) {
       error(err);
       return false;
+    }
+  }
+
+  static assureAppDataFolderExists() {
+    const globals = getGlobals();
+    if (!fs.existsSync(globals.APPDATA_FOLDER)) {
+      log(
+        `DataUtils.assureAppDataFolderExists(): User App data folder not found. Creating ${globals.APPDATA_FOLDER}`
+      );
+      fs.mkdir(globals.APPDATA_FOLDER, { recursive: true }, err => {
+        if (err) {
+          error(err);
+          throw err;
+        }
+      });
     }
   }
 

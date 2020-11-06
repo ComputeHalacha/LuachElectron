@@ -203,6 +203,8 @@ export function getNewDatabaseName() {
 
 export async function initFirstRun() {
   log('GeneralUtils.initFirstRun(): IsFirstRun is true.');
+  DataUtils.assureAppDataFolderExists();
+
   /** *********************************************************************
    * If this is the first time the app was run after a fresh installation,
    * we change the default location to a guess based

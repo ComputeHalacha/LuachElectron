@@ -1,7 +1,7 @@
 import React, { ReactNode, useState, useEffect } from 'react';
+import { ipcRenderer } from 'electron';
 import AppDataContext from '../components/AppDataContext';
 import AppData from '../code/Data/AppData';
-import { ipcRenderer } from 'electron';
 import { initFirstRun } from '../code/GeneralUtils';
 
 type Props = {
