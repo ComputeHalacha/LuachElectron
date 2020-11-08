@@ -5,10 +5,10 @@ import { log } from '../GeneralUtils';
  * Tries to guess the users location from the set time zone name and current utcoffset.
  * Default is Lakewood NJ.
  */
-export async function tryToGuessLocation() {
+export async function tryToGuessLocation(): Promise<Location> {
   const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const cityName = timeZoneName.replace(/.+\/(.+)/, '$1').replace('_', ' ');
-  const foundList = await DataUtils.SearchLocations(cityName, true);
+  const foundList: Location[] = await DataUtils.SearchLocations(cityName, true);
 
   log(`Device time zone is set to: ${timeZoneName}`);
   return foundList[0] || Location.getLakewood();

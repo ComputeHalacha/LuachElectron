@@ -47,7 +47,7 @@ export default function DayView(props) {
         <Col>
           {daysList.map((d, i) => (
             <Card
-              className={`${styles.singleDayCard} ${
+              className={`${styles.card} ${
                 Utils.isSameJdate(d, todayJd) ? styles.cardToday : ''
               }`}
               key={i}

@@ -201,6 +201,14 @@ export function getNewDatabaseName() {
   return `${d.getDate()}-${d.getMonth()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.sqlite`;
 }
 
+/**
+ * Returns a deep clone of any object
+ * @param {Object} obj any object
+ */
+export function deepClone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export async function initFirstRun() {
   log('GeneralUtils.initFirstRun(): IsFirstRun is true.');
   DataUtils.assureAppDataFolderExists();

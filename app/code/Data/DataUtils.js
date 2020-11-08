@@ -284,9 +284,15 @@ export default class DataUtils {
     }
   }
 
-  /** Returns a list of Location objects that match the search query with all the locations in the database. */
+  /** Returns a list of Location objects that match the search query with all the locations in the database.
+   * @returns [Location]
+   */
   static async GetAllLocations() {
-    return DataUtils.queryLocations();
+    const locations = await DataUtils.queryLocations();
+    log(
+      `DataUtils.GetAllLocations(): ${locations.length} locations returned from the database`
+    );
+    return locations;
   }
 
   /**

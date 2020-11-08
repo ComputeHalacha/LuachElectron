@@ -43,12 +43,12 @@ export default class AppData {
    * @param {[TaharaEvent]} taharaEvents
    */
   constructor(
-    settings: Settings,
-    occasions: UserOccasion[],
-    entryList: EntryList,
-    kavuahList: Kavuah[],
-    problemOnahs: ProblemOnah[],
-    taharaEvents: TaharaEvent[]
+    settings: Settings | null,
+    occasions: UserOccasion[] | null,
+    entryList: EntryList | null,
+    kavuahList: Kavuah[] | null,
+    problemOnahs: ProblemOnah[] | null,
+    taharaEvents: TaharaEvent[] | null
   ) {
     this.Settings = settings || new Settings({});
     this.UserOccasions = occasions || [];
@@ -71,10 +71,17 @@ export default class AppData {
   }
 
   /**
+   * Return a deep clone of this AppData object
+   */
+  static clone() {
+    return JSON.parse(JSON.stringify(appData));
+  }
+
+  /**
    * Returns the appData object.
    * The first time this function is called, the global object is filled with the data from the local database file.
    */
-  static async getAppData() {
+  static getAppData() {
     const { appData, setAppData } = useContext(AppDataContext);
     return { appData, setAppData };
   }

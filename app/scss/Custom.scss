@@ -10,7 +10,7 @@
 
 $body-bg: #012;
 $body-color: #def;
-$dark-bg:#131c29;
+$dark-bg: #131c29;
 $very-light-blue-background: #acf;
 $light-blue-background: #9bd;
 $regular-blue-background: #579;
@@ -20,3 +20,32 @@ $theme-colors: (
   'primary': $light-blue-background,
   'danger': #ff4136
 );
+
+.linkButton {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.cardHeader {
+  background-color: $regular-blue-background !important;
+  color: #fff;
+}
+.cardBody {
+  background-color: $very-light-blue-background !important;
+  color: $body-bg !important;
+}
+.cardFooter {
+  background-color: $light-blue-background !important;
+  color: #000;
+}
+

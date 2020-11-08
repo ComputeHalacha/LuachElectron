@@ -1,13 +1,11 @@
 @import './Custom.scss';
 
 .cardHeader {
-  background-color: $regular-blue-background !important;
+  background-color: $dark-blue-background !important;
+  color: #fff;
 }
+
 .cardBody {
   background-color: $very-light-blue-background !important;
-  color: $body-bg !important;
-}
-.cardFooter {
-  background-color: $light-blue-background !important;
-  color: #000;
+  color:#000;
 }
