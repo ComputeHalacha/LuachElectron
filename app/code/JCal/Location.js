@@ -62,6 +62,10 @@ export default class Location {
     return !!this.locationId;
   }
 
+  toString() {
+    return this.Name;
+  }
+
   static clone(location) {
     return new Location(
       location.Name,

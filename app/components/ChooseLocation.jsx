@@ -1,23 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
-import {
-  Container,
-  Card,
-  Form,
-  Button,
-  Row,
-  Col,
-  Modal,
-  ListGroup
-} from 'react-bootstrap';
-import styles from '../scss/SettingsView.scss';
+import React, { useState, useEffect, useRef } from 'react';
+import { Container, Form, Row, Col, ListGroup } from 'react-bootstrap';
 import DataUtils from '../code/Data/DataUtils';
-import { app } from 'electron';
 import { log } from '../code/GeneralUtils';
-import { Link } from 'react-router-dom';
+import styles from '../scss/SettingsView.scss';
 
 export default function ChooseLocation(props) {
   const [locations, setLocations] = useState([]);
   const [fullLocationList, setFullLocationList] = useState([]);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     async function initialize() {
@@ -28,10 +18,9 @@ export default function ChooseLocation(props) {
     initialize();
   }, []);
 
-  async function findLocation(search) {
-    const locs = await DataUtils.SearchLocations(locName);
-    setLocations(locs);
-  }
+  useEffect(() => {
+    inputRef.current.focus();
+  }, [inputRef]);
 
   function filterLocations(val) {
     log(
@@ -49,24 +38,25 @@ export default function ChooseLocation(props) {
       <Row xs={12}>
         <Col>
           <Form.Control
+            ref={inputRef}
             type="text"
             onKeyUp={event => filterLocations(event.target.value)}
             placeholder="Search for your location..."
           />
         </Col>
       </Row>
-      <Row xs={12} style={{ height: '0.50vw' }}>
+      <Row xs={12} style={{ maxHeight: '300px', overflowY: 'scroll' }}>
         <Col>
           <ListGroup>
             {locations &&
               locations.map(location => (
                 <ListGroup.Item
                   key={location.locationId}
-                  className={styles.cardHeader}
+                  className={styles.cardBody}
+                  onClick={() => props.changeLocation(location)}
+                  style={{ cursor: 'pointer' }}
                 >
-                  <a href="#" onClick={() => props.changeLocation(location)}>
-                    {location.Name}
-                  </a>
+                  {location.Name}
                 </ListGroup.Item>
               ))}
           </ListGroup>

@@ -30,6 +30,8 @@ if (isDev()) {
 export default class DataUtils {
   static databasePath = getGlobals().DEFAULT_DB_PATH;
 
+  static allLocations = [];
+
   static async SettingsFromDatabase() {
     let settings;
     try {
@@ -284,15 +286,18 @@ export default class DataUtils {
     }
   }
 
-  /** Returns a list of Location objects that match the search query with all the locations in the database.
+  /** Returns a list of Location objects containing all the locations in the database.
    * @returns [Location]
    */
   static async GetAllLocations() {
-    const locations = await DataUtils.queryLocations();
-    log(
-      `DataUtils.GetAllLocations(): ${locations.length} locations returned from the database`
-    );
-    return locations;
+    if (DataUtils.allLocations.length === 0) {
+      DataUtils.allLocations = await DataUtils.queryLocations();
+      log(
+        `DataUtils.GetAllLocations(): ${DataUtils.allLocations.length} locations returned from the database`
+      );
+    }
+
+    return DataUtils.allLocations;
   }
 
   /**
