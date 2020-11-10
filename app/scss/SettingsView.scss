@@ -1,11 +1,21 @@
 @import './Custom.scss';
 
-.cardHeader {
+.pageHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+
+.sectionHeader {
   background-color: $dark-blue-background !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   color: #fff;
 }
 
 .cardBody {
   background-color: $very-light-blue-background !important;
-  color:#000;
+  color: #000;
 }

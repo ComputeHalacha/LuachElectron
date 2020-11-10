@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import {
   Container,
   Card,
@@ -8,21 +8,44 @@ import {
   Col,
   Modal,
   InputGroup,
-  Alert
+  Alert,
+  Navbar,
+  Nav
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearchLocation } from '@fortawesome/free-solid-svg-icons';
+import { faSearchLocation, faArrowUp } from '@fortawesome/free-solid-svg-icons';
+import BootstrapSwitchButton from 'bootstrap-switch-button-react';
 import ChooseLocation from './ChooseLocation';
 import AppDataContext from './AppDataContext';
-import BootstrapSwitchButton from 'bootstrap-switch-button-react';
 import styles from '../scss/SettingsView.scss';
 import { log } from '../code/GeneralUtils';
-import DataUtils from './../code/Data/DataUtils';
+import DataUtils from '../code/Data/DataUtils';
+import NumberPicker from './NumberPicker';
+
+function scrollTo(item) {
+  item.scrollIntoView({
+    behavior: 'smooth'
+  });
+}
+function TopLink() {
+  return (
+    <Button onClick={() => scrollTo(window.document.body)}>
+      <FontAwesomeIcon
+        icon={faArrowUp}
+        style={{ maxWidth: 45, marginRight: 5 }}
+      />
+      Top
+    </Button>
+  );
+}
 
 export default function SettingsView() {
   const { appData, setAppData } = useContext(AppDataContext);
   const [showLocations, setShowLocations] = useState(false);
-
+  const halachicRef = useRef(null);
+  const applicationRef = useRef(null);
+  const remoteRef = useRef(null);
+  const reminderRef = useRef(null);
   const saveSettings = async () => {
     await DataUtils.SettingsToDatabase(appData.Settings);
     setAppData(appData);
@@ -36,15 +59,30 @@ export default function SettingsView() {
   return (
     <Container fluid>
       <Row xs={12}>
-        <Col>
-          <h1>Settings View</h1>
+        <Col className={styles.pageHeader}>
+          <h1>Luach Settings</h1>
+          <Nav>
+            <Nav.Link onClick={() => scrollTo(halachicRef.current)}>
+              Halachic Settings
+            </Nav.Link>
+            <Nav.Link onClick={() => scrollTo(applicationRef.current)}>
+              Application Settings
+            </Nav.Link>
+            <Nav.Link onClick={() => scrollTo(remoteRef.current)}>
+              Remote Backup Settings
+            </Nav.Link>
+            <Nav.Link onClick={() => scrollTo(reminderRef.current)}>
+              Reminder Settings
+            </Nav.Link>
+          </Nav>
         </Col>
       </Row>
       <Row xs={12}>
         <Col>
-          <Card className={styles.card}>
-            <Card.Header className={styles.cardHeader}>
+          <Card ref={halachicRef} className={styles.card}>
+            <Card.Header className={styles.sectionHeader}>
               <h3>Halachic Settings</h3>
+              <TopLink />
             </Card.Header>
             <Card.Body className={styles.cardBody}>
               <Form>
@@ -190,9 +228,10 @@ export default function SettingsView() {
       </Row>
       <Row xs={12}>
         <Col>
-          <Card className={styles.card}>
-            <Card.Header className={styles.cardHeader}>
+          <Card ref={applicationRef} className={styles.card}>
+            <Card.Header className={styles.sectionHeader}>
               <h3>Application Settings</h3>
+              <TopLink />
             </Card.Header>
             <Card.Body className={styles.cardBody}>
               <Form>
@@ -201,8 +240,8 @@ export default function SettingsView() {
                     checked={appData.Settings.navigateBySecularDate}
                     onlabel="Secular Date"
                     offlabel="Jewish Date"
-                    onstyle="secondary"
-                    offstyle="primary"
+                    onstyle="primary"
+                    offstyle="secondary"
                     width="150"
                     onChange={checked => {
                       appData.Settings.navigateBySecularDate = checked;
@@ -244,27 +283,125 @@ export default function SettingsView() {
                   />
                   {" Don't show Flagged dates for a week after Entry"}
                 </Form.Group>
-                <Form.Group controlId="keepThirtyOne">
+                <Form.Group controlId="numberMonthsAheadToWarn">
+                  <NumberPicker
+                    value={appData.Settings.numberMonthsAheadToWarn}
+                    unitName="Month"
+                    onChange={number => {
+                      appData.Settings.numberMonthsAheadToWarn = number;
+                      setAppData(appData);
+                    }}
+                    startNumber={0}
+                    endNumber={24}
+                  />
+                  {' Number of Months ahead to warn'}
+                </Form.Group>
+                <Form.Group controlId="showIgnoredKavuahs">
+                  <BootstrapSwitchButton
+                    checked={appData.Settings.showIgnoredKavuahs}
+                    onstyle="secondary"
+                    offstyle="primary"
+                    width="90"
+                    onChange={checked => {
+                      appData.Settings.showIgnoredKavuahs = checked;
+                    }}
+                  />
+                  {' Show explicitly ignored Kavuahs in the Kavuah list'}
+                </Form.Group>
+                <Form.Group controlId="hideHelp">
+                  <BootstrapSwitchButton
+                    checked={appData.Settings.hideHelp}
+                    onstyle="secondary"
+                    offstyle="primary"
+                    width="90"
+                    onChange={checked => {
+                      appData.Settings.hideHelp = checked;
+                    }}
+                  />
+                  {' Hide Help Button'}
+                </Form.Group>
+              </Form>
+            </Card.Body>
+            <Card.Footer className={styles.cardFooter}>
+              <Container fluid>
+                <Row>
+                  <Col md="auto">
+                    <Button variant="primary" onClick={cancelChanges}>
+                      Cancel Changes
+                    </Button>
+                  </Col>
+                  <Col>
+                    <Button
+                      variant="secondary"
+                      type="submit"
+                      onClick={saveSettings}
+                    >
+                      Save Changes
+                    </Button>
+                  </Col>
+                </Row>
+              </Container>
+            </Card.Footer>
+          </Card>
+        </Col>
+      </Row>
+      <Row xs={12}>
+        <Col>
+          <Card ref={remoteRef} className={styles.card}>
+            <Card.Header className={styles.sectionHeader}>
+              <h3>Remote Backup Settings</h3>
+              <TopLink />
+            </Card.Header>
+            <Card.Body className={styles.cardBody}>
+              <Form>
+                <Form.Group controlId="haflagaOfOnahs">
                   <Form.Check
                     type="switch"
-                    id="keepThirtyOne"
-                    label="Keep day Thirty One for Onah Beinonis"
+                    id="haflagaOfOnahs"
+                    label="Calculate Haflagas by counting Onahs"
                   />
                 </Form.Group>
-                <Form.Group controlId="keepLongerHaflagah">
+                <Form.Group controlId="kavuahDiffOnahs">
                   <Form.Check
                     type="switch"
-                    id="keepLongerHaflagah"
-                    label="Haflaga is only cancelled by a longer one"
+                    id="kavuahDiffOnahs"
+                    label="Flag Kavuahs even if not all the same Onah"
                   />
                 </Form.Group>
-                <Form.Group controlId="dilugChodeshPastEnds">
-                  <Form.Check
-                    type="switch"
-                    id="dilugChodeshPastEnds"
-                    label=" Continue incrementing Dilug Yom Hachodesh Kavuahs into another month"
-                  />
-                </Form.Group>
+              </Form>
+            </Card.Body>
+            <Card.Footer className={styles.cardFooter}>
+              <Container fluid>
+                <Row>
+                  <Col md="auto">
+                    <Button variant="primary" onClick={cancelChanges}>
+                      Cancel Changes
+                    </Button>
+                  </Col>
+                  <Col>
+                    <Button
+                      variant="secondary"
+                      type="submit"
+                      onClick={saveSettings}
+                    >
+                      Save Changes
+                    </Button>
+                  </Col>
+                </Row>
+              </Container>
+            </Card.Footer>
+          </Card>
+        </Col>
+      </Row>
+      <Row xs={12}>
+        <Col>
+          <Card ref={reminderRef} className={styles.card}>
+            <Card.Header className={styles.sectionHeader}>
+              <h3>Reminder Settings</h3>
+              <TopLink />
+            </Card.Header>
+            <Card.Body className={styles.cardBody}>
+              <Form>
                 <Form.Group controlId="haflagaOfOnahs">
                   <Form.Check
                     type="switch"
@@ -310,7 +447,7 @@ export default function SettingsView() {
         show={showLocations}
         onHide={() => setShowLocations(false)}
       >
-        <Modal.Header closeButton className={styles.cardHeader}>
+        <Modal.Header closeButton className={styles.sectionHeader}>
           <Modal.Title>Choose your location</Modal.Title>
         </Modal.Header>
         <Modal.Body className={styles.cardHeader}>
