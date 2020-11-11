@@ -4,7 +4,7 @@ import { tryToGuessLocation } from './JCal/Locations';
 import DataUtils from './Data/DataUtils';
 import RemoteBackup from './RemoteBackup';
 
-const Alert = {};
+const Alert = window;
 
 /**
  * @returns {{IS_MAC:boolean, VALID_PIN:RegExp,APPDATA_FOLDER:string,INITIAL_DB_PATH:string,DEFAULT_DB_PATH:string }}
@@ -14,32 +14,19 @@ export function getGlobals() {
 }
 
 export async function confirm(message, title) {
-  return new Promise((resolve, reject) => {
-    Alert.alert(title, message, [
-      {
-        text: 'No',
-        onPress: () => reject(false),
-        style: 'cancel'
-      },
-      {
-        text: 'Yes',
-        onPress: () => resolve(true)
-      }
-    ]);
+  return ipcRenderer.sendSync('messageBox', {
+    type: 'question',
+    buttons: ['Yes', 'No'],
+    cancelId: 1,
+    title,
+    message
   });
 }
 export async function inform(message, title) {
-  return new Promise((resolve, reject) => {
-    try {
-      Alert.alert(title, message, [
-        {
-          text: 'OK',
-          onPress: () => resolve(true)
-        }
-      ]);
-    } catch (e) {
-      reject(e.message);
-    }
+  return ipcRenderer.sendSync('messageBox', {
+    type: 'info',
+    title,
+    message
   });
 }
 
@@ -202,7 +189,7 @@ export function getNewDatabaseName() {
 }
 
 /**
- * Returns a deep clone of any object
+ * Returns a deep clone of any object - note does not clone functions.
  * @param {Object} obj any object
  */
 export function deepClone(obj) {

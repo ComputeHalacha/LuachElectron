@@ -113,10 +113,17 @@ export default class AppData {
   }
 
   /**
-   * Return a deep clone of this AppData object
+   * Return a clone of this AppData object
    */
-  static clone(appData: AppData) {
-    return JSON.parse(JSON.stringify(appData));
+  clone() {
+    return new AppData(
+      this.Settings,
+      this.UserOccasions,
+      this.EntryList,
+      this.KavuahList,
+      this.ProblemOnahs,
+      this.TaharaEvents
+    );
   }
 
   /**

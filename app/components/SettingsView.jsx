@@ -22,6 +22,7 @@ import DataUtils from '../code/Data/DataUtils';
 import NumberPicker from './NumberPicker';
 import EditInput from './EditInput';
 import LocalStorage from '../code/Data/LocalStorage';
+import { getGlobals } from './../code/GeneralUtils';
 
 function scrollTo(item) {
   item.scrollIntoView({
@@ -51,25 +52,22 @@ export default function SettingsView({ appData, setAppData }) {
     await DataUtils.SettingsToDatabase(appData);
     setAppData(appData);
   };
-
   const cancelChanges = async () => {
     appData.Settings = await DataUtils.SettingsFromDatabase();
     setAppData(appData);
   };
-
   const changeLocalStorage = (name, val) => {
-    //save value to device storage
     localStorage[name] = val;
-    setLocalStorage(localStorage);
+    setLocalStorage(localStorage.clone());
   };
   const changePIN = pin => {
-    const validPin = !pin || GLOBALS.VALID_PIN.test(pin);
+    const validPin = !pin || getGlobals().VALID_PIN.test(pin);
     if (validPin) {
-      localStorage.PIN = pin;
+      changeLocalStorage('PIN', pin);
+    } else {
+      inform('Pin is  not valid');
     }
-    setLocalStorage(localStorage);
   };
-
   const changeUsername = userName => {
     if (userName && userName.length < 7) {
       inform(

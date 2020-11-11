@@ -143,6 +143,13 @@ ipcMain.on('openFile', async (event, options) => {
   }
 });
 
+ipcMain.on('messageBox', async (event, options) => {
+  const { dialog } = require('electron');
+  const results = await dialog.showMessageBox(mainWindow, options);
+  console.log(`An openFile call ocurred`);
+  event.returnValue = results.response === 0;
+});
+
 ipcMain.on('getPath', (event, arg) => {
   event.returnValue = app.getPath(arg);
 });

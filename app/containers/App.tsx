@@ -2,7 +2,7 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import { ipcRenderer } from 'electron';
 import AppDataContext from '../components/AppDataContext';
 import AppData from '../code/Data/AppData';
-import { initFirstRun, deepClone } from '../code/GeneralUtils';
+import { initFirstRun } from '../code/GeneralUtils';
 
 type Props = {
   children: ReactNode;
@@ -28,7 +28,7 @@ export default function App(props: Props) {
 
   return (
     <AppDataContext.Provider
-      value={{ appData, setAppData: ad => setAppData(deepClone(ad)) }}
+      value={{ appData, setAppData: (ad: AppData) => setAppData(ad.clone()) }}
     >
       {children}
     </AppDataContext.Provider>

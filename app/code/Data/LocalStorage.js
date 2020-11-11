@@ -23,6 +23,16 @@ export default class LocalStorage {
     this._databasePath = globals.DEFAULT_DB_PATH;
   }
 
+  clone() {
+    const ls = new LocalStorage();
+    ls._requirePin = this.requirePin;
+    ls._PIN = this.PIN;
+    ls._remoteUserName = this.remoteUserName;
+    ls._remotePassword = this.remotePassword;
+    ls._databasePath = this.databasePath;
+    return ls;
+  }
+
   get requirePin() {
     return !!this._requirePin;
   }
