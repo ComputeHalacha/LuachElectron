@@ -86,7 +86,8 @@ export default class DataUtils {
     return settings;
   }
 
-  static async SettingsToDatabase(settings) {
+  static async SettingsToDatabase(appData) {
+    const settings = appData.Settings;
     try {
       await DataUtils.executeSql(
         `UPDATE settings SET
@@ -140,7 +141,7 @@ export default class DataUtils {
           settings.remindNightOnahHour
         ]
       );
-      AppData.updateGlobalProbs();
+      appData.updateProbsAndClean();
     } catch (err) {
       warn('Error trying to enter settings into the database.');
       error(err);
@@ -467,7 +468,7 @@ export default class DataUtils {
     return list;
   }
 
-  static async KavuahToDatabase(kavuah) {
+  static async KavuahToDatabase(appData, kavuah) {
     if (!(kavuah.settingEntry && kavuah.settingEntry.hasId)) {
       throw "A kavuah can not be saved to the database unless it's setting entry is already in the database.";
     }
@@ -493,7 +494,7 @@ export default class DataUtils {
           [...params, kavuah.kavuahId]
         );
         log(`Updated Kavuah Id ${kavuah.kavuahId.toString()}`);
-        AppData.updateGlobalProbs();
+        appData.updateProbsAndClean();
       } catch (err) {
         warn(
           `Error trying to update Kavuah Id ${kavuah.kavuahId.toString()} to the database.`
@@ -514,7 +515,7 @@ export default class DataUtils {
           params
         );
         kavuah.kavuahId = results.id;
-        AppData.updateGlobalProbs(kavuah);
+        appData.addOrRemoveChashItem(kavuah);
       } catch (err) {
         warn('Error trying to insert kavuah into the database.');
         error(err);
@@ -522,7 +523,7 @@ export default class DataUtils {
     }
   }
 
-  static async DeleteKavuah(kavuah) {
+  static async DeleteKavuah(appData, kavuah) {
     if (!kavuah.hasId) {
       throw 'Kavuahs can only be deleted from the database if they have an id';
     }
@@ -530,7 +531,7 @@ export default class DataUtils {
       await DataUtils.executeSql('DELETE from kavuahs where kavuahId=?', [
         kavuah.kavuahId
       ]);
-      AppData.updateGlobalProbs(kavuah, true);
+      appData.addOrRemoveChashItem(kavuah, true);
     } catch (err) {
       warn(
         `Error trying to delete kavuah id ${kavuah.kavuahId} from the database`
@@ -539,7 +540,7 @@ export default class DataUtils {
     }
   }
 
-  static async EntryToDatabase(entry) {
+  static async EntryToDatabase(appData, entry) {
     if (entry.hasId) {
       try {
         await DataUtils.executeSql(
@@ -554,7 +555,7 @@ export default class DataUtils {
           ]
         );
         log(`Updated Entry Id ${entry.entryId.toString()}`);
-        AppData.updateGlobalProbs();
+        appData.updateProbsAndClean();
       } catch (err) {
         warn(
           `Error trying to update entry id ${entry.entryId.toString()} to the database.`
@@ -574,7 +575,7 @@ export default class DataUtils {
           ]
         );
         entry.entryId = results.id;
-        AppData.updateGlobalProbs(entry);
+        appData.addOrRemoveChashItem(entry);
       } catch (err) {
         warn('Error trying to insert entry into the database.');
         error(err);
@@ -582,7 +583,7 @@ export default class DataUtils {
     }
   }
 
-  static async DeleteEntry(entry) {
+  static async DeleteEntry(appData, entry) {
     if (!entry.hasId) {
       throw 'Entries can only be deleted from the database if they have an id';
     }
@@ -590,7 +591,7 @@ export default class DataUtils {
       await DataUtils.executeSql('DELETE from entries where entryId=?', [
         entry.entryId
       ]);
-      AppData.updateGlobalProbs(entry, true);
+      appData.addOrRemoveChashItem(entry, true);
     } catch (err) {
       warn(
         `Error trying to delete entry id ${entry.entryId} from the database`

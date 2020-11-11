@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Card,
@@ -16,7 +16,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearchLocation, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import BootstrapSwitchButton from 'bootstrap-switch-button-react';
 import ChooseLocation from './ChooseLocation';
-import AppDataContext from './AppDataContext';
 import styles from '../scss/SettingsView.scss';
 import { log } from '../code/GeneralUtils';
 import DataUtils from '../code/Data/DataUtils';
@@ -39,15 +38,14 @@ function TopLink() {
   );
 }
 
-export default function SettingsView() {
-  const { appData, setAppData } = useContext(AppDataContext);
+export default function SettingsView({ appData, setAppData }) {
   const [showLocations, setShowLocations] = useState(false);
   const halachicRef = useRef(null);
   const applicationRef = useRef(null);
   const remoteRef = useRef(null);
   const reminderRef = useRef(null);
   const saveSettings = async () => {
-    await DataUtils.SettingsToDatabase(appData.Settings);
+    await DataUtils.SettingsToDatabase(appData);
     setAppData(appData);
   };
 

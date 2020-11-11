@@ -1,4 +1,3 @@
-import { useContext } from 'react';
 import DataUtils from './DataUtils';
 import Settings from '../Settings';
 import Entry from '../Chashavshavon/Entry';
@@ -29,11 +28,17 @@ const addedFields: string[] = [];
  */
 export default class AppData {
   Settings: Settings;
+
   UserOccasions: UserOccasion[];
+
   EntryList: EntryList;
+
   KavuahList: Kavuah[];
+
   ProblemOnahs: ProblemOnah[];
+
   TaharaEvents: TaharaEvent[];
+
   /**
    * @param {Settings} settings
    * @param {[UserOccasion]} occasions
@@ -61,69 +66,57 @@ export default class AppData {
   /**
    *  Calculates all the Entry Haflagas and Flagged Dates for this appData instance.
    */
-  updateProbs() {
+  updateProbsAndClean() {
     this.EntryList.calculateHaflagas();
     let probs: ProblemOnah[] = [];
     if (this.EntryList.list.length > 0) {
       probs = this.EntryList.getProblemOnahs(this.KavuahList, this.Settings);
     }
     this.ProblemOnahs = probs;
+
+    if (isNullishOrFalse(this.Settings.remindDayOnahHour)) {
+      removeAllDayOnahReminders();
+    } else {
+      resetDayOnahReminders(this);
+    }
+    if (isNullishOrFalse(this.Settings.remindNightOnahHour)) {
+      removeAllNightOnahReminders();
+    } else {
+      resetNightOnahReminders(this);
+    }
+  }
+
+  /**
+   * Adds or removes the given item to the appropriate list in this appData object.
+   * The Entry Haflagas and Flagged Dates are then recalculated.
+   * @param {Entry | Kavuah} item
+   * @param {Boolean} remove
+   */
+  addOrRemoveChashItem(item?: Entry | Kavuah, remove?: boolean) {
+    if (item) {
+      if (!remove) {
+        if (item instanceof Entry) {
+          this.EntryList.add(item);
+        } else if (item instanceof Kavuah) {
+          this.KavuahList.push(item);
+        }
+      } else if (item instanceof Entry) {
+        this.EntryList.remove(item);
+      } else if (item instanceof Kavuah) {
+        const index = this.KavuahList.indexOf(item);
+        if (index > -1) {
+          this.KavuahList.splice(index, 1);
+        }
+      }
+    }
+    this.updateProbsAndClean();
   }
 
   /**
    * Return a deep clone of this AppData object
    */
-  static clone() {
+  static clone(appData: AppData) {
     return JSON.parse(JSON.stringify(appData));
-  }
-
-  /**
-   * Returns the appData object.
-   * The first time this function is called, the global object is filled with the data from the local database file.
-   */
-  static getAppData() {
-    const { appData, setAppData } = useContext(AppDataContext);
-    return { appData, setAppData };
-  }
-
-  /**
-   * Adds or removes the given item to the appropriate list in the global appData object.
-   * The Entry Haflagas and Flagged Dates are then recalculated for the global appData object.
-   * @param {Entry | Kavuah} item
-   * @param {Boolean} remove
-   */
-  static updateGlobalProbs(item?: Entry | Kavuah, remove?: Boolean) {
-    AppData.getAppData().then(({ appData, setAppData }) => {
-      if (item) {
-        if (!remove) {
-          if (item instanceof Entry) {
-            appData.EntryList.add(item);
-          } else if (item instanceof Kavuah) {
-            appData.KavuahList.push(item);
-          }
-        } else if (item instanceof Entry) {
-          appData.EntryList.remove(item);
-        } else if (item instanceof Kavuah) {
-          const index = appData.KavuahList.indexOf(item);
-          if (index > -1) {
-            appData.KavuahList.splice(index, 1);
-          }
-        }
-      }
-      appData.updateProbs(appData);
-
-      if (isNullishOrFalse(appData.Settings.remindDayOnahHour)) {
-        removeAllDayOnahReminders();
-      } else {
-        resetDayOnahReminders(appData);
-      }
-      if (isNullishOrFalse(appData.Settings.remindNightOnahHour)) {
-        removeAllNightOnahReminders();
-      } else {
-        resetNightOnahReminders(appData);
-      }
-      setAppData(appData);
-    });
   }
 
   /**
@@ -133,17 +126,17 @@ export default class AppData {
   static async upgradeDatabase() {
     // First get a list of tables that may need updating.
     const tablesToChange: [] = [];
-    for (const af of addedFields) {
+    addedFields.forEach(af => {
       if (!tablesToChange.includes(af.table)) {
         tablesToChange.push(af.table);
       }
-    }
-    for (const tbl of tablesToChange) {
+    });
+    tablesToChange.forEach(async tbl => {
       // Get the new fields for this table.
       const newFields = addedFields.filter(af => af.table === tbl);
       const fields = await DataUtils.GetTableFields(tbl);
 
-      for (const nf of newFields) {
+      newFields.forEach(async nf => {
         if (!fields.some(f => f.name === nf.name)) {
           // Add any new fields that were added after the last update.
           await DataUtils.AddTableField(nf);
@@ -152,8 +145,8 @@ export default class AppData {
             await nf.afterAddCallback();
           }
         }
-      }
-    }
+      });
+    });
   }
 
   /**
@@ -161,7 +154,7 @@ export default class AppData {
    */
   static async fromDatabase() {
     // Before getting data from database, make sure that the local database schema is up to date.
-    //await AppData.upgradeDatabase();
+    // await AppData.upgradeDatabase();
 
     const settings = await DataUtils.SettingsFromDatabase().catch(err => {
       warn('Error running SettingsFromDatabase.');

@@ -14,9 +14,8 @@ function getDaysList(jdate) {
   return daysList;
 }
 
-export default function WeekView(props) {
-  const { jdate } = props,
-    todayJd = getTodayJdate();
+export default function WeekView({appData, setAppData, jdate}) {
+  const todayJd = getTodayJdate();
   const [currJd, setcurrJd] = useState(jdate || todayJd);
   const [daysList, setDaysList] = useState(getDaysList(currJd));
 

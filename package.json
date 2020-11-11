@@ -323,6 +323,10 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "-vs-binding": {
+    "BeforeBuild": [
+      "dev"
+    ]
   }
-, "-vs-binding":{"BeforeBuild":["dev"]}
 }

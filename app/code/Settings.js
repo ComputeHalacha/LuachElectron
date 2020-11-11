@@ -37,10 +37,6 @@ export default class Settings {
     this.autoBackup = setDefault(args.autoBackup, true);
   }
 
-  async save() {
-    await DataUtils.SettingsToDatabase(this);
-  }
-
   static async setCurrentLocation(location) {
     await DataUtils.SetCurrentLocationOnDatabase(location);
     global.GlobalAppData.Settings.location = location;

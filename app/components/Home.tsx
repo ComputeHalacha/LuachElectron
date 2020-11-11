@@ -27,23 +27,23 @@ export default function Home() {
   function View() {
     switch (homeViewType) {
       case 'day':
-        return <DayView />;
+        return <DayView appData={appData} setAppData={setAppData} />;
       case 'week':
-        return <WeekView />;
+        return <WeekView appData={appData} setAppData={setAppData} />;
       case 'month':
-        return <MonthView />;
+        return <MonthView appData={appData} setAppData={setAppData} />;
       case 'settings':
-        return <SettingsView />;
+        return <SettingsView appData={appData} setAppData={setAppData} />;
       case 'flaggedDates':
-        return <FlaggedDatesView />;
+        return <FlaggedDatesView appData={appData} setAppData={setAppData} />;
       case 'entries':
-        return <EntriesView />;
+        return <EntriesView appData={appData} setAppData={setAppData} />;
       case 'kavuahs':
-        return <KavuahsView />;
+        return <KavuahsView appData={appData} setAppData={setAppData} />;
       case 'occasions':
-        return <OccasionsView />;
+        return <OccasionsView appData={appData} setAppData={setAppData} />;
       default:
-        return <DayView />;
+        return <DayView appData={appData} setAppData={setAppData} />;
     }
   }
 

@@ -12,9 +12,8 @@ function getDaysList(jdate) {
   return daysList;
 }
 
-export default function MonthView(props) {
-  const { jdate } = props,
-    todayJd = getTodayJdate();
+export default function MonthView({appData, setAppData, jdate}) {
+  const todayJd = getTodayJdate();
   const [currJd, setcurrJd] = useState(jdate || todayJd);
   const [daysList, setDaysList] = useState(getDaysList(currJd));
 

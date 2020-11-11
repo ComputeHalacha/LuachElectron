@@ -12,9 +12,8 @@ function getDaysList(jdate) {
   return daysList;
 }
 
-export default function DayView(props) {
-  const { jdate } = props,
-    todayJd = getTodayJdate();
+export default function DayView({appData, setAppData, jdate}) {
+  const todayJd = getTodayJdate();
   const [daysList, setDaysList] = useState(getDaysList(jdate || todayJd));
 
   function addNextDay() {

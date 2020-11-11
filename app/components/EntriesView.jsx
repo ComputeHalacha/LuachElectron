@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 
-export default function EntriesView(props) {
+export default function EntriesView({appData, setAppData, jdate}) {
   return (
     <Container fluid>
       <Row xs={12}>
