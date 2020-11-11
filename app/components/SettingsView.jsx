@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Container,
   Card,
@@ -17,9 +17,11 @@ import { faSearchLocation, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import BootstrapSwitchButton from 'bootstrap-switch-button-react';
 import ChooseLocation from './ChooseLocation';
 import styles from '../scss/SettingsView.scss';
-import { log } from '../code/GeneralUtils';
+import { log, inform } from '../code/GeneralUtils';
 import DataUtils from '../code/Data/DataUtils';
 import NumberPicker from './NumberPicker';
+import EditInput from './EditInput';
+import LocalStorage from '../code/Data/LocalStorage';
 
 function scrollTo(item) {
   item.scrollIntoView({
@@ -40,6 +42,7 @@ function TopLink() {
 
 export default function SettingsView({ appData, setAppData }) {
   const [showLocations, setShowLocations] = useState(false);
+  const [localStorage, setLocalStorage] = useState(new LocalStorage());
   const halachicRef = useRef(null);
   const applicationRef = useRef(null);
   const remoteRef = useRef(null);
@@ -52,6 +55,50 @@ export default function SettingsView({ appData, setAppData }) {
   const cancelChanges = async () => {
     appData.Settings = await DataUtils.SettingsFromDatabase();
     setAppData(appData);
+  };
+
+  const changeLocalStorage = (name, val) => {
+    //save value to device storage
+    localStorage[name] = val;
+    setLocalStorage(localStorage);
+  };
+  const changePIN = pin => {
+    const validPin = !pin || GLOBALS.VALID_PIN.test(pin);
+    if (validPin) {
+      localStorage.PIN = pin;
+    }
+    setLocalStorage(localStorage);
+  };
+
+  const changeUsername = userName => {
+    if (userName && userName.length < 7) {
+      inform(
+        'Please choose a User Name with at least 7 characters',
+        'Invalid user Name'
+      );
+    } else if (userName && userName === localStorage.password) {
+      inform(
+        'Please choose a User Name that is not the same as your Password',
+        'Invalid user name'
+      );
+    } else {
+      changeLocalStorage('remoteUserName', userName);
+    }
+  };
+  const changePassword = password => {
+    if (localStorage.remoteUserName && password.length < 7) {
+      inform(
+        'Please choose a Password with at least 7 characters',
+        'Invalid password'
+      );
+    } else if (password && password === localStorage.remoteUserName) {
+      inform(
+        'Please choose a Password that is not the same as your User Name',
+        'Invalid password'
+      );
+    } else {
+      changeLocalStorage('remotePassword', password);
+    }
   };
 
   return (
@@ -352,18 +399,21 @@ export default function SettingsView({ appData, setAppData }) {
             </Card.Header>
             <Card.Body className={styles.cardBody}>
               <Form>
-                <Form.Group controlId="haflagaOfOnahs">
-                  <Form.Check
-                    type="switch"
-                    id="haflagaOfOnahs"
-                    label="Calculate Haflagas by counting Onahs"
+                <Form.Group controlId="remoteUserName">
+                  <EditInput
+                    type="text"
+                    id="remoteUserName"
+                    label="Remote backup account user name"
+                    value={localStorage.remoteUserName}
+                    onChange={val => changeUsername(val)}
                   />
                 </Form.Group>
-                <Form.Group controlId="kavuahDiffOnahs">
-                  <Form.Check
-                    type="switch"
-                    id="kavuahDiffOnahs"
-                    label="Flag Kavuahs even if not all the same Onah"
+                <Form.Group controlId="remotePassword">
+                  <EditInput
+                    type="text"
+                    id="remotePassword"
+                    label="Remote backup account password"
+                    onChange={val => changePassword(val)}
                   />
                 </Form.Group>
               </Form>
