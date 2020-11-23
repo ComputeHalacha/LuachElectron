@@ -1,15 +1,13 @@
 import PropTypes from 'prop-types';
 import React, { useState, useRef } from 'react';
 
-const WAIT_INTERVAL = 1000;
-const ENTER_KEY = 13;
-
 export default function EditInput({
   onChange,
   type,
   className,
   placeholder,
-  value
+  value,
+  secondsToRunChange
 }) {
   const [newValue, setNewValue] = useState(value || '');
   const newValueRef = useRef(newValue);
@@ -24,11 +22,11 @@ export default function EditInput({
     timeoutRef.current = setTimeout(() => {
       timeoutRef.current = null;
       onChange(newValueRef.current);
-    }, WAIT_INTERVAL);
+    }, (secondsToRunChange || 3) * 1000);
   };
 
   const handleKeyDown = e => {
-    if (e.keyCode === ENTER_KEY) {
+    if (e.keyCode === 13) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -55,5 +53,6 @@ EditInput.propTypes = {
   onChange: PropTypes.func,
   placeholder: PropTypes.string,
   type: PropTypes.string,
-  value: PropTypes.string
+  value: PropTypes.string,
+  secondsToRunChange: PropTypes.number
 };

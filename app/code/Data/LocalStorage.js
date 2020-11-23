@@ -11,71 +11,83 @@ const AllKeys = [
   'DATABASE_PATH'
 ];
 
+export const KeyNames = Object.freeze({
+  REQUIRE_PIN: 'REQUIRE_PIN',
+  PIN: 'PIN',
+  REMOTE_USERNAME: 'REMOTE_USERNAME',
+  REMOTE_PASSWORD: 'REMOTE_PASSWORD',
+  DATABASE_PATH: 'DATABASE_PATH'
+});
+
 /**
  * @type {{requirePin:boolean, PIN:String, remoteUserName:String, remotePassword:String, databasePath:String }}
  */
 export default class LocalStorage {
   constructor() {
-    this._requirePin = false;
-    this._PIN = null;
-    this._remoteUserName = null;
-    this._remotePassword = null;
-    this._databasePath = globals.DEFAULT_DB_PATH;
+    this.requirePin = false;
+    this.PIN = null;
+    this.remoteUserName = null;
+    this.remotePassword = null;
+    this.databasePath = globals.DEFAULT_DB_PATH;
   }
 
   clone() {
     const ls = new LocalStorage();
-    ls._requirePin = this.requirePin;
-    ls._PIN = this.PIN;
-    ls._remoteUserName = this.remoteUserName;
-    ls._remotePassword = this.remotePassword;
-    ls._databasePath = this.databasePath;
+    ls.requirePin = this.requirePin;
+    ls.PIN = this.PIN;
+    ls.remoteUserName = this.remoteUserName;
+    ls.remotePassword = this.remotePassword;
+    ls.databasePath = this.databasePath;
     return ls;
   }
 
-  get requirePin() {
-    return !!this._requirePin;
-  }
-
-  set requirePin(val) {
+  setRequirePin(val) {
     LocalStorage.setLocalStorageValue('REQUIRE_PIN', !!val);
-    this._requirePin = val;
+    this.requirePin = val;
   }
 
-  get PIN() {
-    return this._PIN;
-  }
-
-  set PIN(val) {
+  setPIN(val) {
     LocalStorage.setLocalStorageValue('PIN', val);
-    this._PIN = val;
+    this.PIN = val;
   }
 
-  get remoteUserName() {
-    return this._remoteUserName;
-  }
-
-  set remoteUserName(val) {
+  setRemoteUserName(val) {
     LocalStorage.setLocalStorageValue('REMOTE_USERNAME', val);
-    this._remoteUserName = val;
+    this.remoteUserName = val;
   }
 
-  get remotePassword() {
-    return this._remotePassword;
-  }
-
-  set remotePassword(val) {
+  setRemotePassword(val) {
     LocalStorage.setLocalStorageValue('REMOTE_PASSWORD', val || '');
-    this._remotePassword = val;
+    this.remotePassword = val;
   }
 
-  get databasePath() {
-    return this._databasePath || globals.DEFAULT_DB_PATH;
-  }
-
-  set databasePath(val) {
+  setDatabasePath(val) {
     LocalStorage.setLocalStorageValue('DATABASE_PATH', val || '');
-    this._databasePath = val;
+    this.databasePath = val;
+  }
+
+  saveAll() {
+    AllKeys.forEach(key => {
+      switch (key) {
+        case 'REQUIRE_PIN':
+          LocalStorage.setLocalStorageValue(key, !!this.requirePin);
+          break;
+        case 'PIN':
+          LocalStorage.setLocalStorageValue(key, this.PIN);
+          break;
+        case 'REMOTE_USERNAME':
+          LocalStorage.setLocalStorageValue(key, this.remoteUserName);
+          break;
+        case 'REMOTE_PASSWORD':
+          LocalStorage.setLocalStorageValue(key, this.remotePassword || '');
+          break;
+        case 'DATABASE_PATH':
+          LocalStorage.setLocalStorageValue(key, this.databasePath || '');
+          break;
+        default:
+          break;
+      }
+    });
   }
 
   /**
@@ -90,19 +102,19 @@ export default class LocalStorage {
           if (value !== null) {
             switch (key) {
               case 'REQUIRE_PIN':
-                ls._requirePin = value && Boolean(JSON.parse(value));
+                ls.requirePin = value && Boolean(JSON.parse(value));
                 break;
               case 'PIN':
-                ls._PIN = JSON.parse(value);
+                ls.PIN = JSON.parse(value);
                 break;
               case 'REMOTE_USERNAME':
-                ls._remoteUserName = JSON.parse(value);
+                ls.remoteUserName = JSON.parse(value);
                 break;
               case 'REMOTE_PASSWORD':
-                ls._remotePassword = JSON.parse(value);
+                ls.remotePassword = JSON.parse(value);
                 break;
               case 'DATABASE_PATH':
-                ls._databasePath = JSON.parse(value);
+                ls.databasePath = JSON.parse(value);
                 break;
               default:
                 break;

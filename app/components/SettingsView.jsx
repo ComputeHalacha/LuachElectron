@@ -17,12 +17,11 @@ import { faSearchLocation, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import BootstrapSwitchButton from 'bootstrap-switch-button-react';
 import ChooseLocation from './ChooseLocation';
 import styles from '../scss/SettingsView.scss';
-import { log, inform } from '../code/GeneralUtils';
+import { log, inform, getGlobals } from '../code/GeneralUtils';
 import DataUtils from '../code/Data/DataUtils';
 import NumberPicker from './NumberPicker';
 import EditInput from './EditInput';
 import LocalStorage from '../code/Data/LocalStorage';
-import { getGlobals } from './../code/GeneralUtils';
 
 function scrollTo(item) {
   item.scrollIntoView({
@@ -56,14 +55,13 @@ export default function SettingsView({ appData, setAppData }) {
     appData.Settings = await DataUtils.SettingsFromDatabase();
     setAppData(appData);
   };
-  const changeLocalStorage = (name, val) => {
-    localStorage[name] = val;
-    setLocalStorage(localStorage.clone());
-  };
+
   const changePIN = pin => {
     const validPin = !pin || getGlobals().VALID_PIN.test(pin);
     if (validPin) {
-      changeLocalStorage('PIN', pin);
+      const ls = localStorage.clone();
+      ls.PIN = pin;
+      setLocalStorage(ls);
     } else {
       inform('Pin is  not valid');
     }
@@ -80,7 +78,9 @@ export default function SettingsView({ appData, setAppData }) {
         'Invalid user name'
       );
     } else {
-      changeLocalStorage('remoteUserName', userName);
+      const ls = localStorage.clone();
+      ls.remoteUserName = userName;
+      setLocalStorage(ls);
     }
   };
   const changePassword = password => {
@@ -95,7 +95,9 @@ export default function SettingsView({ appData, setAppData }) {
         'Invalid password'
       );
     } else {
-      changeLocalStorage('remotePassword', password);
+      const ls = localStorage.clone();
+      ls.remotePassword = password;
+      setLocalStorage(ls);
     }
   };
 
@@ -420,7 +422,13 @@ export default function SettingsView({ appData, setAppData }) {
               <Container fluid>
                 <Row>
                   <Col md="auto">
-                    <Button variant="primary" onClick={cancelChanges}>
+                    <Button
+                      variant="primary"
+                      onClick={async () => {
+                        const ls = await LocalStorage.loadAll();
+                        setLocalStorage(ls);
+                      }}
+                    >
                       Cancel Changes
                     </Button>
                   </Col>
@@ -428,7 +436,7 @@ export default function SettingsView({ appData, setAppData }) {
                     <Button
                       variant="secondary"
                       type="submit"
-                      onClick={saveSettings}
+                      onClick={() => localStorage.saveAll()}
                     >
                       Save Changes
                     </Button>
