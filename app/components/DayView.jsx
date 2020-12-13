@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, CardGroup, Card, Button, Row, Col } from 'react-bootstrap';
+import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { getTodayJdate } from '../code/JCal/jDateUtils';
 import Utils from '../code/JCal/Utils';
 import styles from '../scss/DayView.scss';
@@ -12,7 +12,7 @@ function getDaysList(jdate) {
   return daysList;
 }
 
-export default function DayView({appData, setAppData, jdate}) {
+export default function DayView({ jdate }) {
   const todayJd = getTodayJdate();
   const [daysList, setDaysList] = useState(getDaysList(jdate || todayJd));
 

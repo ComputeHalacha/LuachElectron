@@ -1,5 +1,5 @@
-import Utils from './Utils.js';
-import jDate from './jDate.js';
+import Utils from './Utils';
+import jDate from './jDate';
 
 /* Returns the molad for the given jewish month and year.
  * Algorithm was adapted from Hebcal by Danny Sadinoff

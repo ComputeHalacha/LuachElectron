@@ -1,23 +1,37 @@
 import jDate from './jDate';
 import Utils from './Utils';
 
-const UserOccasionTypes = Object.freeze({
-  OneTime: 1,
-  HebrewDateRecurringYearly: 2,
-  HebrewDateRecurringMonthly: 4,
-  SecularDateRecurringYearly: 8,
-  SecularDateRecurringMonthly: 16
-});
+enum UserOccasionTypes {
+  OneTime = 1,
+  HebrewDateRecurringYearly = 2,
+  HebrewDateRecurringMonthly = 4,
+  SecularDateRecurringYearly = 8,
+  SecularDateRecurringMonthly = 16
+}
 
 /**
  * An Occasion or Event.
  *
- * Note, the terms "Occasion" and "Event" are used interchangeablly in code, comments and documentation.
+ * Note, the terms "Occasion" and "Event" are used interchangeably in code, comments and documentation.
  */
 class UserOccasion {
+  title: string;
+  occasionType: UserOccasionTypes;
+  dateAbs: number;
+  color: string;
+  comments: string;
+  occasionId: number;
+
   static defaultColor = '#b96';
 
-  constructor(title, occasionType, dateAbs, color, comments, occasionId) {
+  constructor(
+    title: string,
+    occasionType: UserOccasionTypes,
+    dateAbs: number,
+    color: string,
+    comments: string,
+    occasionId: number
+  ) {
     this.title = title;
     this.occasionType = occasionType;
     // This should only be changed by setting the jdate or sdate properties
@@ -31,7 +45,7 @@ class UserOccasion {
    * Returns a short description of the current Occasion/Event
    * @param {Boolean} noOriginalDate Set to true to refrain from showing the setting date.
    */
-  toString(noOriginalDate) {
+  toString(noOriginalDate: boolean) {
     switch (this.occasionType) {
       case UserOccasionTypes.OneTime:
         return `One time event on ${this.jdate.toString()} - ${Utils.toStringDate(
@@ -81,7 +95,7 @@ class UserOccasion {
    * returns the year number for that iteration in the format: "5th year"
    * @param {jDate | Date} date Can be either a jDate or a Javascript Date
    */
-  getYearString(date) {
+  getYearString(date: jDate | Date) {
     if (!date) {
       return '';
     }
@@ -176,8 +190,8 @@ class UserOccasion {
   getPreviousInstance() {
     const nowSd = new Date();
     const nowJd = new jDate(nowSd);
-    let jd;
-    let sd;
+    let jd: jDate;
+    let sd: Date;
     switch (this.occasionType) {
       case UserOccasionTypes.HebrewDateRecurringYearly:
         jd = new jDate(nowJd.Year, this.jdate.Month, this.jdate.Day);
@@ -221,7 +235,7 @@ class UserOccasion {
    * Compares 2 events to see if they have the same title, date, type, color and comment.
    * @param {UserOccasion} occasion
    */
-  isSameOccasion(occasion) {
+  isSameOccasion(occasion: UserOccasion) {
     if (!occasion) {
       return false;
     }

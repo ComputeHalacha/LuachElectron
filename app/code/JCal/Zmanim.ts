@@ -1,6 +1,12 @@
 import Utils from './Utils';
 import jDate from './jDate';
 import { isValidDate } from '../GeneralUtils';
+import Location from './Location';
+
+interface HourMinute {
+  hour: number;
+  minute: number;
+}
 
 /**
  * Computes the daily Zmanim for any single date at any location.
@@ -17,20 +23,25 @@ export default class Zmanim {
    * @param {Location} location Where on the globe to calculate the sun times for.
    * @param {Boolean} considerElevation
    */
-  static getSunTimes(date, location, considerElevation = true) {
+  static getSunTimes(
+    date: string | number | jDate | Date,
+    location: Location,
+    considerElevation = true
+  ) {
+    let sdate: Date;
     if (date instanceof jDate) {
-      date = date.getDate();
-    } else if (date instanceof String) {
-      date = new Date(date);
+      sdate = date.getDate();
+    } else {
+      sdate = new Date(date);
     }
 
-    if (!isValidDate(date)) {
+    if (!isValidDate(sdate)) {
       throw 'Zmanim.getSunTimes: supplied date parameter cannot be converted to a Date';
     }
 
-    let sunrise,
-      sunset,
-      day = Zmanim.dayOfYear(date),
+    let sunrise: HourMinute = { hour: -1, minute: -1 },
+      sunset: HourMinute = { hour: -1, minute: -1 },
+      day = Zmanim.dayOfYear(sdate),
       zenithDeg = 90,
       zenithMin = 50,
       lonHour = 0,
@@ -104,7 +115,7 @@ export default class Zmanim {
     if (Math.abs(hRise) <= 1) {
       hRise = 57.29578 * Math.acos(hRise);
       utRise = (360 - hRise) / 15 + ahrRise + Zmanim.adj(tRise) + lonHour;
-      sunrise = Zmanim.timeAdj(utRise + location.UTCOffset, date, location);
+      sunrise = Zmanim.timeAdj(utRise + location.UTCOffset, sdate, location);
       if (sunrise.hour > 12) {
         sunrise.hour -= 12;
       }
@@ -112,22 +123,21 @@ export default class Zmanim {
     if (Math.abs(hSet) <= 1) {
       hSet = 57.29578 * Math.acos(hSet);
       utSet = hRise / 15 + ahrSet + Zmanim.adj(tSet) + lonHour;
-      sunset = Zmanim.timeAdj(utSet + location.UTCOffset, date, location);
+      sunset = Zmanim.timeAdj(utSet + location.UTCOffset, sdate, location);
       if (sunset.hour > 0 && sunset.hour < 12) {
         sunset.hour += 12;
       }
     }
-
     return { sunrise, sunset };
   }
 
-  static getChatzos(date, location) {
+  static getChatzos(date: Date, location: Location) {
     return Zmanim.getChatzosFromSuntimes(
       Zmanim.getSunTimes(date, location, false)
     );
   }
 
-  static getChatzosFromSuntimes(sunTimes) {
+  static getChatzosFromSuntimes(sunTimes: { sunrise: any; sunset: any }) {
     const rise = sunTimes.sunrise,
       set = sunTimes.sunset;
 
@@ -137,19 +147,22 @@ export default class Zmanim {
 
     const riseMinutes = rise.hour * 60 + rise.minute,
       setMinutes = set.hour * 60 + set.minute,
-      chatz = Utils.toInt((setMinutes - riseMinutes) / 2);
+      chatzos = Utils.toInt((setMinutes - riseMinutes) / 2);
 
-    return Utils.addMinutes(rise, chatz);
+    return Utils.addMinutes(rise, chatzos);
   }
 
-  static getShaaZmanis(date, location, offset) {
+  static getShaaZmanis(date: Date, location: Location, offset: number) {
     return Zmanim.getShaaZmanisFromSunTimes(
       Zmanim.getSunTimes(date, location, false),
       offset
     );
   }
 
-  static getShaaZmanisFromSunTimes(sunTimes, offset) {
+  static getShaaZmanisFromSunTimes(
+    sunTimes: { sunrise: any; sunset: any },
+    offset: number | undefined
+  ) {
     let rise = sunTimes.sunrise,
       set = sunTimes.sunset;
 
@@ -165,22 +178,34 @@ export default class Zmanim {
     return (Utils.totalMinutes(set) - Utils.totalMinutes(rise)) / 12;
   }
 
-  static getShaaZmanisMga(sunTimes, israel) {
+  static getShaaZmanisMga(
+    sunTimes: {
+      sunrise: HourMinute | undefined;
+      sunset: HourMinute | undefined;
+    },
+    israel: boolean
+  ) {
     return Zmanim.getShaaZmanisFromSunTimes(sunTimes, israel ? 90 : 72);
   }
 
-  static getCandleLighting(date, location) {
+  static getCandleLighting(date: Date, location: Location) {
     return Zmanim.getCandleLightingFromSunTimes(
       Zmanim.getSunTimes(date, location),
       location
     );
   }
 
-  static getCandleLightingFromSunTimes(sunTimes, location) {
+  static getCandleLightingFromSunTimes(
+    sunTimes: {
+      sunrise?: HourMinute | undefined;
+      sunset: HourMinute;
+    },
+    location: Location
+  ) {
     return Utils.addMinutes(sunTimes.sunset, -location.CandleLighting);
   }
 
-  static dayOfYear(date) {
+  static dayOfYear(date: Date) {
     const month = date.getMonth(),
       isLeap = () => Utils.isSecularLeapYear(date.getFullYear()),
       yearDay = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
@@ -189,15 +214,15 @@ export default class Zmanim {
     );
   }
 
-  static degToDec(deg, min) {
+  static degToDec(deg: number, min: number) {
     return deg + min / 60;
   }
 
-  static M(x) {
+  static M(x: number) {
     return 0.9856 * x - 3.251;
   }
 
-  static L(x) {
+  static L(x: number) {
     return (
       x +
       1.916 * Math.sin(0.01745 * x) +
@@ -206,15 +231,15 @@ export default class Zmanim {
     );
   }
 
-  static adj(x) {
+  static adj(x: number) {
     return -0.06571 * x - 6.62;
   }
 
-  static radToDeg(rad) {
+  static radToDeg(rad: number) {
     return 57.29578 * rad;
   }
 
-  static timeAdj(time, date, location) {
+  static timeAdj(time: number, date: Date, location: Location) {
     let hour, min;
 
     if (time < 0) {

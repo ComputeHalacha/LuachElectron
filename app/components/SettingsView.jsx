@@ -9,25 +9,20 @@ import {
   Modal,
   InputGroup,
   Alert,
-  Navbar,
   Nav
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearchLocation, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import BootstrapSwitchButton from 'bootstrap-switch-button-react';
+import { useAppGlobalState } from './AppDataContext';
 import ChooseLocation from './ChooseLocation';
 import styles from '../scss/SettingsView.scss';
-import { log, inform, getGlobals } from '../code/GeneralUtils';
+import { scrollTo, inform, getGlobals } from '../code/GeneralUtils';
 import DataUtils from '../code/Data/DataUtils';
 import NumberPicker from './NumberPicker';
 import EditInput from './EditInput';
 import LocalStorage from '../code/Data/LocalStorage';
 
-function scrollTo(item) {
-  item.scrollIntoView({
-    behavior: 'smooth'
-  });
-}
 function TopLink() {
   return (
     <Button onClick={() => scrollTo(window.document.body)}>
@@ -40,28 +35,37 @@ function TopLink() {
   );
 }
 
-export default function SettingsView({ appData, setAppData }) {
+export default function SettingsView() {
+  const [state, dispatch] = useAppGlobalState();
   const [showLocations, setShowLocations] = useState(false);
-  const [localStorage, setLocalStorage] = useState(new LocalStorage());
+  const { appData, localStorage } = state;
+  const saveLocalStorageState = ls =>
+    dispatch({ type: 'UPDATE_LOCAL_STORAGE', payload: ls || localStorage });
   const halachicRef = useRef(null);
   const applicationRef = useRef(null);
   const remoteRef = useRef(null);
   const reminderRef = useRef(null);
-  const saveSettings = async () => {
-    await DataUtils.SettingsToDatabase(appData);
-    setAppData(appData);
+  const saveSettingsToState = settings => {
+    appData.updateProbsAndClean();
+    dispatch({
+      type: 'UPDATE_APP_DATA',
+      payload: { ...appData, Settings: settings }
+    });
+  };
+  const saveSettings = async settings => {
+    await DataUtils.SettingsToDatabase(settings || appData.Settings);
+    saveSettingsToState(settings);
   };
   const cancelChanges = async () => {
-    appData.Settings = await DataUtils.SettingsFromDatabase();
-    setAppData(appData);
+    const settings = await DataUtils.SettingsFromDatabase();
+    saveSettingsToState(settings);
   };
 
   const changePIN = pin => {
     const validPin = !pin || getGlobals().VALID_PIN.test(pin);
     if (validPin) {
-      const ls = localStorage.clone();
-      ls.PIN = pin;
-      setLocalStorage(ls);
+      localStorage.PIN = pin;
+      saveLocalStorageState();
     } else {
       inform('Pin is  not valid');
     }
@@ -78,9 +82,8 @@ export default function SettingsView({ appData, setAppData }) {
         'Invalid user name'
       );
     } else {
-      const ls = localStorage.clone();
-      ls.remoteUserName = userName;
-      setLocalStorage(ls);
+      localStorage.remoteUserName = userName;
+      saveLocalStorageState();
     }
   };
   const changePassword = password => {
@@ -95,9 +98,8 @@ export default function SettingsView({ appData, setAppData }) {
         'Invalid password'
       );
     } else {
-      const ls = localStorage.clone();
-      ls.remotePassword = password;
-      setLocalStorage(ls);
+      localStorage.remotePassword = password;
+      saveLocalStorageState();
     }
   };
 
@@ -260,7 +262,7 @@ export default function SettingsView({ appData, setAppData }) {
                     <Button
                       variant="secondary"
                       type="submit"
-                      onClick={saveSettings}
+                      onClick={() => saveSettings()}
                     >
                       Save Changes
                     </Button>
@@ -290,7 +292,7 @@ export default function SettingsView({ appData, setAppData }) {
                     width="150"
                     onChange={checked => {
                       appData.Settings.navigateBySecularDate = checked;
-                      setAppData(appData);
+                      saveSettings();
                     }}
                   />
                   {' Date navigation calendar displayed'}
@@ -334,7 +336,7 @@ export default function SettingsView({ appData, setAppData }) {
                     unitName="Month"
                     onChange={number => {
                       appData.Settings.numberMonthsAheadToWarn = number;
-                      setAppData(appData);
+                      saveSettings();
                     }}
                     startNumber={0}
                     endNumber={24}
@@ -379,7 +381,7 @@ export default function SettingsView({ appData, setAppData }) {
                     <Button
                       variant="secondary"
                       type="submit"
-                      onClick={saveSettings}
+                      onClick={() => saveSettings()}
                     >
                       Save Changes
                     </Button>
@@ -426,7 +428,7 @@ export default function SettingsView({ appData, setAppData }) {
                       variant="primary"
                       onClick={async () => {
                         const ls = await LocalStorage.loadAll();
-                        setLocalStorage(ls);
+                        saveLocalStorageState(ls);
                       }}
                     >
                       Cancel Changes
@@ -484,7 +486,7 @@ export default function SettingsView({ appData, setAppData }) {
                     <Button
                       variant="secondary"
                       type="submit"
-                      onClick={saveSettings}
+                      onClick={() => saveSettings()}
                     >
                       Save Changes
                     </Button>
@@ -508,7 +510,7 @@ export default function SettingsView({ appData, setAppData }) {
           <ChooseLocation
             changeLocation={location => {
               appData.Settings.location = location;
-              setAppData(appData);
+              saveSettings();
               setShowLocations(false);
             }}
           />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { getTodayJdate } from '../code/JCal/jDateUtils';
 import Utils from '../code/JCal/Utils';
@@ -14,7 +14,7 @@ function getDaysList(jdate) {
   return daysList;
 }
 
-export default function WeekView({appData, setAppData, jdate}) {
+export default function WeekView({ jdate }) {
   const todayJd = getTodayJdate();
   const [currJd, setcurrJd] = useState(jdate || todayJd);
   const [daysList, setDaysList] = useState(getDaysList(currJd));

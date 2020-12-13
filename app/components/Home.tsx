@@ -1,10 +1,10 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { Button, Container, Row, Col, Nav, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import routes from '../constants/routes.json';
-import AppDataContext from './AppDataContext';
+import { useAppGlobalState } from './AppDataContext';
 import jDate from '../code/JCal/jDate';
 import Utils from '../code/JCal/Utils';
 import DayView from './DayView';
@@ -17,9 +17,11 @@ import KavuahsView from './KavuahsView';
 import OccasionsView from './OccasionsView';
 import LuachNav from './LuachNav';
 import styles from '../scss/Home.scss';
+import { app } from 'electron';
 
 export default function Home() {
-  const { appData, setAppData } = useContext(AppDataContext);
+  const [state] = useAppGlobalState();
+  const { appData } = state;
   const [showMenu, setShowMenu] = useState(true);
   const [homeViewType, setHomeViewType] = useState('day');
   const jd = new jDate();
@@ -27,23 +29,23 @@ export default function Home() {
   function View() {
     switch (homeViewType) {
       case 'day':
-        return <DayView appData={appData} setAppData={setAppData} />;
+        return <DayView />;
       case 'week':
-        return <WeekView appData={appData} setAppData={setAppData} />;
+        return <WeekView />;
       case 'month':
-        return <MonthView appData={appData} setAppData={setAppData} />;
+        return <MonthView />;
       case 'settings':
-        return <SettingsView appData={appData} setAppData={setAppData} />;
+        return <SettingsView />;
       case 'flaggedDates':
-        return <FlaggedDatesView appData={appData} setAppData={setAppData} />;
+        return <FlaggedDatesView />;
       case 'entries':
-        return <EntriesView appData={appData} setAppData={setAppData} />;
+        return <EntriesView />;
       case 'kavuahs':
-        return <KavuahsView appData={appData} setAppData={setAppData} />;
+        return <KavuahsView />;
       case 'occasions':
-        return <OccasionsView appData={appData} setAppData={setAppData} />;
+        return <OccasionsView />;
       default:
-        return <DayView appData={appData} setAppData={setAppData} />;
+        return <DayView />;
     }
   }
 

@@ -1,19 +1,23 @@
-import { isNumber, log } from '../GeneralUtils';
+import { isNumber } from '../GeneralUtils';
 import Entry from './Entry';
 import FlaggedDatesGenerator from './FlaggedDatesGenerator';
+import { Kavuah } from './Kavuah';
+import Settings from '../Settings';
 
 export default class EntryList {
-  constructor(entryList) {
+  list: Array<Entry>;
+
+  constructor(entryList: Array<Entry>) {
     this.list = entryList || [];
   }
 
   /**
    * Add an Entry to the list.
-   * In most cases, calculateHaflagas should be called after changing the list.
+   * In most cases, calculate Haflagas should be called after changing the list.
    * @param {Entry} entry
    * @param {Function} [afterwards]
    */
-  add(entry, afterwards) {
+  add(entry: Entry, afterwards: CallableFunction): number {
     if (!(entry instanceof Entry)) {
       throw 'Only objects of type Entry can be added to the EntryList';
     } else if (!this.list.some(e => e.isSameEntry(entry))) {
@@ -24,21 +28,26 @@ export default class EntryList {
       }
       return index;
     }
+    return 0;
   }
 
   /**
    * Remove the given entry from the list
    * In most cases, calculateHaflagas should be called after changing the list.
    * @param {Number|Entry} arg Either the index of the Entry to remove or the actual Entry to remove.
-   * Note: The suppled Entry does not have to refer to the same instance as the Entry in the list,
+   * Note: The supplied Entry does not have to refer to the same instance as the Entry in the list,
    * an entry where Entry.isSameEntry() returns true is removed.
-   * @param {Function} [afterwards] The callback. Suppies the removed entry as an argument.
+   * @param {Function} [afterwards] The callback. Supplies the removed entry as an argument.
    */
-  remove(arg, afterwards) {
+  remove(arg: number | Entry, afterwards: CallableFunction) {
     let wasRemoved = false;
     let entry = null;
-    if (isNumber(arg) && arg >= 0 && arg < this.list.length) {
-      entry = this.list.splice(arg, 1);
+    if (
+      isNumber(arg) &&
+      (arg as number) >= 0 &&
+      (arg as number) < this.list.length
+    ) {
+      entry = this.list.splice(arg as number, 1);
       wasRemoved = true;
     } else if (arg instanceof Entry) {
       const index = this.list.findIndex(e => e === arg || e.isSameEntry(arg));
@@ -56,11 +65,11 @@ export default class EntryList {
 
   /**
    * Returns whether or not the given Entry is in this list.
-   * Note: The suppled Entry does not have to refer to the same actual instance as an Entry in the list;
+   * Note: The supplied Entry does not have to refer to the same actual instance as an Entry in the list;
    * an entry where isSameEntry returns true is also considered "found".
    * @param {*} Entry to test
    */
-  contains(entry) {
+  contains(entry: Entry) {
     return !!~this.list.findIndex(e => e === entry || e.isSameEntry(entry));
   }
 
@@ -77,7 +86,7 @@ export default class EntryList {
    * Gets an array of the Entries in the list that are real periods...
    * I.E. not ignored for flagged dates
    */
-  get realEntrysList() {
+  get realEntryList() {
     return EntryList.sortEntries(
       this.list.filter(e => !e.ignoreForFlaggedDates)
     );
@@ -87,8 +96,8 @@ export default class EntryList {
    * Returns the latest Entry
    */
   lastEntry() {
-    let latest;
-    this.list.foreach(entry => {
+    let latest: Entry | undefined;
+    this.list.forEach(entry => {
       if (!latest || entry.date.Abs > latest.date.Abs) {
         latest = entry;
       }
@@ -100,8 +109,8 @@ export default class EntryList {
    * Returns the latest Entry that isn't set to ignore for Flagged Dates
    */
   lastRegularEntry() {
-    const { realEntrysList } = this;
-    return realEntrysList[realEntrysList.length - 1];
+    const { realEntryList } = this;
+    return realEntryList[realEntryList.length - 1];
   }
 
   /**
@@ -110,11 +119,11 @@ export default class EntryList {
   calculateHaflagas() {
     // Get only those entries that can generate flagged dates.
     // Non-real entries do not have a haflaga
-    const { realEntrysList } = this;
+    const { realEntryList } = this;
 
     // First Entry in the real entry list does not have a Haflaga
-    for (let i = 1; i < realEntrysList.length; i++) {
-      realEntrysList[i].setHaflaga(realEntrysList[i - 1]);
+    for (let i = 1; i < realEntryList.length; i++) {
+      realEntryList[i].setHaflaga(realEntryList[i - 1]);
     }
   }
 
@@ -126,9 +135,9 @@ export default class EntryList {
    * @param {[Kavuah]} kavuahList
    * @param {Settings} settings
    */
-  getProblemOnahs(kavuahList, settings) {
+  getProblemOnahs(kavuahList: Array<Kavuah>, settings: Settings) {
     const generator = new FlaggedDatesGenerator(
-      this.realEntrysList,
+      this.realEntryList,
       kavuahList,
       settings
     );
@@ -137,9 +146,9 @@ export default class EntryList {
 
   /**
    * Sorts the given list of Entries chronologically.
-   * @param {[Entry]} list
+   * @param {Array<Entry>} list
    */
-  static sortEntries(list) {
+  static sortEntries(list: Array<Entry>) {
     return list.sort((a, b) => {
       if (a.date.Abs < b.date.Abs) {
         return -1;

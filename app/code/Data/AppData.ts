@@ -13,7 +13,6 @@ import {
   removeAllNightOnahReminders
 } from '../Notifications';
 import { error, warn, isNullishOrFalse } from '../GeneralUtils';
-import AppDataContext from '../../components/AppDataContext';
 
 /**
  * List of fields that have been added after the initial app launch.
@@ -40,20 +39,20 @@ export default class AppData {
   TaharaEvents: TaharaEvent[];
 
   /**
-   * @param {Settings} settings
-   * @param {[UserOccasion]} occasions
-   * @param {EntryList} entryList
-   * @param {[Kavuah]} kavuahList
-   * @param {[ProblemOnah]} problemOnahs
-   * @param {[TaharaEvent]} taharaEvents
+   * @param {?Settings} settings
+   * @param {?[UserOccasion]} occasions
+   * @param {?EntryList} entryList
+   * @param {?[Kavuah]} kavuahList
+   * @param {?[ProblemOnah]} problemOnahs
+   * @param {?[TaharaEvent]} taharaEvents
    */
   constructor(
-    settings: Settings | null,
-    occasions: UserOccasion[] | null,
-    entryList: EntryList | null,
-    kavuahList: Kavuah[] | null,
-    problemOnahs: ProblemOnah[] | null,
-    taharaEvents: TaharaEvent[] | null
+    settings?: Settings,
+    occasions?: UserOccasion[],
+    entryList?: EntryList,
+    kavuahList?: Kavuah[],
+    problemOnahs?: ProblemOnah[],
+    taharaEvents?: TaharaEvent[]
   ) {
     this.Settings = settings || new Settings({});
     this.UserOccasions = occasions || [];

@@ -4,8 +4,6 @@ import { tryToGuessLocation } from './JCal/Locations';
 import DataUtils from './Data/DataUtils';
 import RemoteBackup from './RemoteBackup';
 
-const Alert = window;
-
 /**
  * @returns {{IS_MAC:boolean, VALID_PIN:RegExp,APPDATA_FOLDER:string,INITIAL_DB_PATH:string,DEFAULT_DB_PATH:string }}
  */
@@ -30,17 +28,26 @@ export async function inform(message, title) {
   });
 }
 
-/** Returns true if "thing" is either a string primitive or String object. */
+/**
+ * Returns true if "thing" is either a string primitive or String object.
+ * @param {*} thing
+ */
 export function isString(thing) {
   return typeof thing === 'string' || thing instanceof String;
 }
-/** Returns true if "thing" is either a number primitive or a Number object. */
+/**
+ * Returns true if "thing" is either a number primitive or a Number object.
+ * @param {*} thing
+ */
 export function isNumber(thing) {
   return typeof thing === 'number' || thing instanceof Number;
 }
-/** Returns true if "thing" is a Date object containing a valid date. */
+/**
+ * Returns true if "thing" is a Date object containing a valid date.
+ * @param {*} thing
+ */
 export function isValidDate(thing) {
-  return thing && thing instanceof Date && !isNaN(thing.valueOf());
+  return thing && thing instanceof Date && !Number.isNaN(thing.valueOf());
 }
 /** Returns whether or not the given, array, string, or argument list contains the given item or substring.
  *
@@ -56,7 +63,7 @@ export function has(o, ...arr) {
  * @param {*} val
  */
 export function isNullish(val) {
-  return typeof val === 'undefined' || val === null || isNaN(val);
+  return typeof val === 'undefined' || val === null || Number.isNaN(val);
 }
 
 /** Returns the first value unless it is undefined, null or NaN.
@@ -194,6 +201,16 @@ export function getNewDatabaseName() {
  */
 export function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * Srcroll to an item
+ * @param {Object} item
+ */
+export function scrollTo(item) {
+  item.scrollIntoView({
+    behavior: 'smooth'
+  });
 }
 
 export async function initFirstRun() {

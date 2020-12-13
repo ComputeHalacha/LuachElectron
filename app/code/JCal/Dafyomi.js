@@ -1,5 +1,5 @@
-import Utils from './Utils.js';
-import jDate from './jDate.js';
+import Utils from './Utils';
+import jDate from './jDate';
 
 /** *********************************************************************************************************
  * Computes the Day Yomi for the given day.
@@ -56,31 +56,30 @@ export default class Dafyomi {
 
   static getDaf(jdate) {
     const absoluteDate = jdate.Abs;
-    const dafcnt = 40;
+    const dafCount = 40;
     let cno;
     let dno;
-    let osday;
-    let nsday;
     let total;
     let count;
     let j;
     let blatt;
 
-    osday = jDate.absSd(new Date(1923, 8, 11));
-    nsday = jDate.absSd(new Date(1975, 5, 24));
+    const od = jDate.absSd(new Date(1923, 8, 11));
+    const nd = jDate.absSd(new Date(1975, 5, 24));
 
     /*  No cycle, new cycle, old cycle */
-    if (absoluteDate < osday) return null; /* daf yomi hadn't started yet */
-    if (absoluteDate >= nsday) {
-      cno = 8 + Utils.toInt((absoluteDate - nsday) / 2711);
-      dno = (absoluteDate - nsday) % 2711;
+    if (absoluteDate < od) return null; /* daf yomi hadn't started yet */
+    if (absoluteDate >= nd) {
+      cno = 8 + Utils.toInt((absoluteDate - nd) / 2711);
+      dno = (absoluteDate - nd) % 2711;
     } else {
-      cno = 1 + Utils.toInt((absoluteDate - osday) / 2702);
-      dno = Utils.toInt((absoluteDate - osday) / 2702);
+      cno = 1 + Utils.toInt((absoluteDate - od) / 2702);
+      dno = Utils.toInt((absoluteDate - od) / 2702);
     }
 
     /* Find the daf taking note that the cycle changed slightly after cycle 7. */
-    total = blatt = 0;
+    blatt = 0;
+    total = 0;
     count = -1;
 
     /* Fix Shekalim for old cycles */
@@ -89,7 +88,7 @@ export default class Dafyomi {
 
     /* Find the daf */
     j = 0;
-    while (j < dafcnt) {
+    while (j < dafCount) {
       count++;
       total = total + Dafyomi.masechtaList[j].daf - 1;
       if (dno < total) {
@@ -109,7 +108,7 @@ export default class Dafyomi {
             break;
         }
         /* Bailout */
-        j = 1 + dafcnt;
+        j = 1 + dafCount;
       }
       j++;
     }

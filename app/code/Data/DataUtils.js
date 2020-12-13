@@ -86,8 +86,7 @@ export default class DataUtils {
     return settings;
   }
 
-  static async SettingsToDatabase(appData) {
-    const settings = appData.Settings;
+  static async SettingsToDatabase(settings) {
     try {
       await DataUtils.executeSql(
         `UPDATE settings SET
@@ -141,7 +140,6 @@ export default class DataUtils {
           settings.remindNightOnahHour
         ]
       );
-      appData.updateProbsAndClean();
     } catch (err) {
       warn('Error trying to enter settings into the database.');
       error(err);

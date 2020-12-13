@@ -1,7 +1,13 @@
-import { NightDay } from './Onah';
+import { Onah, NightDay } from './Onah';
 import Utils from '../JCal/Utils';
 
 export default class Entry {
+  onah: Onah;
+  entryId: number;
+  ignoreForFlaggedDates: boolean;
+  ignoreForKavuah: boolean;
+  comments: string;
+  haflaga:number;
   /**
    * A single "ראייה" - period.
    * @param {Onah} onah Jewish date and Night/Day that the period began
@@ -10,7 +16,13 @@ export default class Entry {
    * @param {Boolean} ignoreForKavuah Ignore this Entry while calculating possible Kavuahs
    * @param {String} comment
    */
-  constructor(onah, entryId, ignoreForFlaggedDates, ignoreForKavuah, comments) {
+  constructor(
+    onah: Onah,
+    entryId: number,
+    ignoreForFlaggedDates: boolean,
+    ignoreForKavuah: boolean,
+    comments: string
+  ) {
     this.onah = onah;
     this.entryId = entryId;
     this.ignoreForFlaggedDates = !!ignoreForFlaggedDates;
@@ -24,7 +36,7 @@ export default class Entry {
    * Set the current entries haflaga
    * @param {Entry} previousEntry
    */
-  setHaflaga(previousEntry) {
+  setHaflaga(previousEntry: Entry) {
     this.haflaga = previousEntry
       ? previousEntry.date.diffDays(this.date) + 1
       : 0;
@@ -35,16 +47,16 @@ export default class Entry {
    * There can not be more than a single Entry per Onah.
    * @param {Entry} entry
    */
-  isSameEntry(entry) {
+  isSameEntry(entry: Entry) {
     return this.onah.isSameOnah(entry.onah);
   }
 
   /**
    * Get the onah differential between two entries.
-   * The second onah must be chronologically after this Entrys onah.
+   * The second onah must be chronologically after this Entry's onah.
    * @param {Entry} entry
    */
-  getOnahDifferential(entry) {
+  getOnahDifferential(entry: Entry) {
     let count = this.date.diffDays(entry.date) * 2;
     if (this.nightDay < entry.nightDay) {
       count++;
@@ -157,9 +169,5 @@ export default class Entry {
 
   get hasId() {
     return !!this.entryId;
-  }
-
-  get haflaga() {
-    return this.haflaga;
   }
 }

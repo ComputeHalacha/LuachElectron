@@ -1,19 +1,17 @@
 import jDate from '../JCal/jDate';
 import Utils from '../JCal/Utils';
 
-const NightDay = Object.freeze({
-  Night: -1,
-  Day: 1
-});
+enum NightDay {
+  Night = -1,
+  Day = 1
+}
 /**
  * Represents either the night-time or the day-time sof a single Jewish Date.
  */
 class Onah {
-  /**
-   * @param {jDate} jdate
-   * @param {Number} nightDay
-   */
-  constructor(jdate, nightDay) {
+  jdate: jDate;
+  nightDay: NightDay;
+  constructor(jdate: jDate, nightDay: number) {
     if (!(jdate instanceof jDate)) {
       throw 'jdate must be supplied.';
     }
@@ -28,7 +26,7 @@ class Onah {
    * Determines if the supplied Onah has the same Jewish date and Night/Day as the current Onah.
    * @param {Onah} onah
    */
-  isSameOnah(onah) {
+  isSameOnah(onah: Onah) {
     return (
       Utils.isSameJdate(this.jdate, onah.jdate) &&
       this.nightDay === onah.nightDay
@@ -39,7 +37,7 @@ class Onah {
    * Add the given number of Onahs to the current one
    * @param {Number} number - if it is negative will get an earlier onah
    */
-  addOnahs(number) {
+  addOnahs(number: number) {
     if (!number) {
       return this;
     }

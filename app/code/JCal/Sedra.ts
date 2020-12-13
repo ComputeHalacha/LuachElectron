@@ -1,4 +1,4 @@
-import jDate from './jDate.js';
+import jDate from './jDate';
 
 /** **************************************************************************************************************
  * Computes the Sedra/Sedras of the week for the given day.
@@ -11,7 +11,10 @@ import jDate from './jDate.js';
  * Portions of that code are Copyright (c) 2002 Michael J. Radwin. All Rights Reserved.
  * Many of the algorithms were taken from hebrew calendar routines implemented by Nachum Dershowitz
  * ************************************************************************************************************** */
-export default function Sedra(jd, israel) {
+export default function Sedra(
+  jd: jDate,
+  israel: boolean
+): Array<{ eng: string; heb: string }> {
   // If we are between the first day of Sukkos and Simchas Torah, the sedra will always be Vezos Habracha.
   if (jd.Month === 7 && jd.Day >= 15 && jd.Day < (israel ? 23 : 24)) {
     return [Sedra.sedraList[53]];
@@ -21,12 +24,11 @@ export default function Sedra(jd, israel) {
   const sedraOrder = Sedra.getSedraOrder(jd.Year, israel);
   let absDate = jd.Abs;
   let index;
-  let weekNum;
 
   /* find the first saturday on or after today's date */
   absDate = Sedra.getDayOnOrBefore(6, absDate + 6);
 
-  weekNum = (absDate - sedraOrder.firstSatInYear) / 7;
+  const weekNum = (absDate - sedraOrder.firstSatInYear) / 7;
 
   if (weekNum >= sedraOrder.sedraArray.length) {
     const indexLast = sedraOrder.sedraArray[sedraOrder.sedraArray.length - 1];
@@ -931,11 +933,11 @@ Sedra.thu_long_leap = [
   -50
 ];
 
-Sedra.getDayOnOrBefore = (dayOfWeek, date) => {
-  return date - ((date - dayOfWeek) % 7);
+Sedra.getDayOnOrBefore = (dayOfWeek: number, abs: number) => {
+  return abs - ((abs - dayOfWeek) % 7);
 };
 
-Sedra.getSedraOrder = (year, israel) => {
+Sedra.getSedraOrder = (year: number, israel: boolean) => {
   // If the last call is within the same year as this one, we reuse the data.
   // If memory is an issue, remove these next few lines
   if (

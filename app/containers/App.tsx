@@ -1,36 +1,10 @@
-import React, { ReactNode, useState, useEffect } from 'react';
-import { ipcRenderer } from 'electron';
-import AppDataContext from '../components/AppDataContext';
-import AppData from '../code/Data/AppData';
-import { initFirstRun } from '../code/GeneralUtils';
+import React, { ReactNode } from 'react';
+import { AppDataProvider } from '../components/AppDataContext';
 
 type Props = {
   children: ReactNode;
 };
 
-export default function App(props: Props) {
-  const { children } = props;
-  const [appData, setAppData] = useState(
-    new AppData(null, null, null, null, null, null)
-  );
-
-  useEffect(() => {
-    async function initialize() {
-      if (ipcRenderer.sendSync('getIsFirstRun')) {
-        await initFirstRun();
-        ipcRenderer.send('setAfterFirstRun');
-      }
-      const ad = await AppData.fromDatabase();
-      setAppData(ad);
-    }
-    initialize();
-  }, []);
-
-  return (
-    <AppDataContext.Provider
-      value={{ appData, setAppData: (ad: AppData) => setAppData(ad.clone()) }}
-    >
-      {children}
-    </AppDataContext.Provider>
-  );
+export default function App({ children }: Props) {
+  return <AppDataProvider>{children}</AppDataProvider>;
 }

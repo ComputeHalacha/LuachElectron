@@ -1,13 +1,13 @@
 import { isString, isNumber, has, isValidDate } from '../GeneralUtils';
-import Utils from './Utils.js';
-import Sedra from './Sedra.js';
+import Utils from './Utils';
+import Sedra from './Sedra';
 import PirkeiAvos from './PirkeiAvos.js';
-import Zmanim from './Zmanim.js';
+import Zmanim from './Zmanim';
 import DafYomi from './Dafyomi';
 
 /** Keeps a memcached "repository" of years that have had their elapsed days previously calculated.
  * Format: { year:5776, elapsed:2109283 } */
-const _yearCache = [],
+const _yearCache: Array<{ year: number; elapsed: number }> = [],
   // The "absolute date" for the zero hour of all javascript Date objects - 1/1/1970 0:00:00 UTC
   // This is the number of days elapsed from the theoretical date Sunday, December 31, 0001 BCE
   JS_START_DATE_ABS = 719163,
@@ -15,6 +15,13 @@ const _yearCache = [],
   MS_PER_DAY = 8.64e7,
   // The time zone offset (in minutes) for 1/1/1970 0:00:00 UTC at the current users time zone
   JS_START_OFFSET = new Date(0).getTimezoneOffset();
+
+interface DayMonthYear {
+  year: number;
+  month: number;
+  day: number;
+  abs?: number;
+}
 
 /* ****************************************************************************************************************
  * Many of the date conversion algorithms in the jDate class are based on the C code -
@@ -24,6 +31,10 @@ const _yearCache = [],
 
 /** Represents a single day in the Jewish Calendar. */
 export default class jDate {
+  Day: number;
+  Month: number;
+  Year: number;
+  Abs: number;
   /**
    *  Create a new Jdate.
    *  new jDate() - Sets the Jewish Date for the current system date
@@ -37,12 +48,22 @@ export default class jDate {
    *  new jDate(absoluteDate) - The number of days elapsed since the theoretical date Sunday, December 31, 0001 BCE
    *  new jDate(jewishYear, jewishMonth, jewishDay, absoluteDate) - Most efficient constructor. Needs no calculations at all.
    *  new jDate( { year: 5776, month: 4, day: 5, abs: 122548708 } ) - same as new jDate(jewishYear, jewishMonth, jewishDay, absoluteDate)
-   * @param {Number | Date |String | {year:Number,month:Number,day:Number} | [Number, Number, Number, Number]} arg The full Jewish year number OR Javascript Date object or string OR object or array of year, month, day
-   * @param {Number} [month] The month of the Jewish date. Nissan is 1.
-   * @param {Number} [day] The day of the month
-   * @param {Number} [abs] The number of days that have passed since 12/31/0001
+   * @param {?Number | Date |String | DayMonthYear | [Number, Number, Number, Number]} arg The full Jewish year number OR Javascript Date object or string OR object or array of year, month, day
+   * @param {?Number} [month] The month of the Jewish date. Nissan is 1.
+   * @param {?Number} [day] The day of the month
+   * @param {?Number} [abs] The number of days that have passed since 12/31/0001
    */
-  constructor(arg, month, day, abs) {
+  constructor(
+    arg?:
+      | number
+      | Date
+      | string
+      | DayMonthYear
+      | [number, number, number, number],
+    month?: number,
+    day?: number,
+    abs?: number
+  ) {
     // The day of the Jewish Month
     this.Day = NaN;
     // The Jewish Month. As in the Torah, Nissan is 1 and Adar Sheini is 13
@@ -68,7 +89,7 @@ export default class jDate {
         (arg.length > 3 && arg[3]) ||
         jDate.absJd(this.Year, this.Month, this.Day);
     } else if (isString(arg)) {
-      const d = new Date(arg);
+      const d = new Date(arg as string);
       if (isValidDate(d)) {
         this.fromAbs(jDate.absSd(d));
       } else {
@@ -77,11 +98,11 @@ export default class jDate {
     } else if (isNumber(arg)) {
       // if no other arguments were supplied, we assume that the supplied number is an absolute date
       if (arguments.length === 1) {
-        this.fromAbs(arg);
+        this.fromAbs(arg as number);
       }
       // If the year and any other number is supplied, we set the year and create the date using either the supplied values or the defaults
       else {
-        this.Year = arg;
+        this.Year = arg as number;
         this.Month = month || 7; // If no month was supplied, we take Tishrei
         this.Day = day || 1; // If no day was supplied, we take the first day of the month
         // If the absolute date was also supplied (very efficient), we use the supplied value, otherwise we calculate it.
@@ -89,16 +110,17 @@ export default class jDate {
       }
     }
     // If arg is an object that has a "year" property that contains a valid value...
-    else if (typeof arg === 'object' && isNumber(arg.year)) {
-      this.Day = arg.day || 1;
-      this.Month = arg.month || 7;
-      this.Year = arg.year;
-      this.Abs = arg.abs || jDate.absJd(this.Year, this.Month, this.Day);
+    else if (typeof arg === 'object' && isNumber((arg as DayMonthYear).year)) {
+      const dmy = arg as DayMonthYear;
+      this.Day = dmy.day || 1;
+      this.Month = dmy.month || 7;
+      this.Year = dmy.year;
+      this.Abs = dmy.abs || jDate.absJd(this.Year, this.Month, this.Day);
     }
   }
 
   /** Sets the current Jewish date from the given absolute date */
-  fromAbs(absolute) {
+  fromAbs(absolute: number) {
     const ymd = jDate.fromAbs(absolute);
     this.Year = ymd.year;
     this.Month = ymd.month;
@@ -123,7 +145,7 @@ export default class jDate {
   }
 
   /** Returns a new Jewish date represented by adding the given number of days to the current Jewish date. */
-  addDays(days) {
+  addDays(days: number) {
     return new jDate(this.Abs + days);
   }
 
@@ -134,7 +156,7 @@ export default class jDate {
    * the 29th day of the month is returned.
    * @param {Number} months
    */
-  addMonths(months) {
+  addMonths(months: number) {
     let year = this.Year,
       month = this.Month,
       day = this.Day,
@@ -175,7 +197,7 @@ export default class jDate {
    * the 29th day of the month is returned.
    * @param {Number} years
    */
-  addYears(years) {
+  addYears(years: number) {
     let year = this.Year + years,
       month = this.Month,
       day = this.Day;
@@ -197,13 +219,13 @@ export default class jDate {
     return new jDate(year, month, day);
   }
 
-  addSecularMonths(months) {
+  addSecularMonths(months: number) {
     const secDate = new Date(this.getDate().valueOf());
     secDate.setMonth(secDate.getMonth() + months);
     return new jDate(secDate);
   }
 
-  addSecularYears(years) {
+  addSecularYears(years: number) {
     const secDate = new Date(this.getDate().valueOf());
     secDate.setFullYear(secDate.getFullYear() + years);
     return new jDate(secDate);
@@ -212,7 +234,7 @@ export default class jDate {
   /** Gets the number of days separating this Jewish Date and the given one.
    *
    * If the given date is before this one, the number will be negative. */
-  diffDays(jd) {
+  diffDays(jd: jDate) {
     return jd.Abs - this.Abs;
   }
 
@@ -223,7 +245,7 @@ export default class jDate {
    * jDate.toJDate(5777, 6, 29).diffMonths(jDate.toJDate(5778, 7, 1)) will return 1 even though they are a day apart.
    *
    * If the given date is before this one, the number will be negative. */
-  diffMonths(jd) {
+  diffMonths(jd: jDate) {
     let month = jd.Month,
       year = jd.Year,
       months = 0;
@@ -258,15 +280,15 @@ export default class jDate {
    * jDate.toJDate(5777, 6, 29).diffYears(jDate.toJDate(5778, 7, 1)) will return 1 even though they are a day apart.
    *
    * If the given date is before this one, the number will be negative. */
-  diffYears(jd) {
+  diffYears(jd: jDate) {
     return jd.Year - this.Year;
   }
 
   /** Returns the current Jewish date in the format: Thursday, the 3rd of Kislev 5776. */
-  toString(hideDayOfWeek, dontCapitalize) {
+  toString(hideDayOfWeek = false, noCapitalize = false) {
     return `${
       hideDayOfWeek
-        ? dontCapitalize
+        ? noCapitalize
           ? 't'
           : 'T'
         : `${Utils.dowEng[this.getDayOfWeek()]}, t`
@@ -277,7 +299,7 @@ export default class jDate {
    * Returns the current Jewish date in the format "[Tuesday] Nissan 3, 5778"
    * @param {bool} showDow - show day of week?
    */
-  toShortString(showDow) {
+  toShortString(showDow = false) {
     return `${(showDow ? `${Utils.dowEng[this.getDayOfWeek()]} ` : '') +
       Utils.jMonthsEng[
         this.Month
@@ -317,21 +339,21 @@ export default class jDate {
   }
 
   /** Gets an array[string] of holidays, fasts and any other special specifications for the current Jewish date. */
-  getHolidays(israel, hebrew) {
+  getHolidays(israel = false, hebrew = false) {
     return jDate.getHolidays(this, israel, hebrew);
   }
 
   /**
    * Gets a string with the name of a major holidays or fast
    */
-  getMajorHoliday(israel, hebrew) {
+  getMajorHoliday(israel = false, hebrew = false) {
     return jDate.getMajorHoliday(this, israel, hebrew);
   }
 
   /**
    * Is the given date a yom tov - has it's own Krias Hatorah
    */
-  isYomTov(israel) {
+  isYomTov(israel: boolean) {
     const { Month, Day } = this;
     return (
       (Month === 1 && Day > 14 && Day < (israel ? 22 : 23)) ||
@@ -343,7 +365,7 @@ export default class jDate {
   }
 
   /** Is the current Jewish Date the day before a yomtov that contains a Friday? */
-  hasEiruvTavshilin(israel) {
+  hasEiruvTavshilin(israel = false) {
     const dow = this.getDayOfWeek();
     // No Eiruv Tavshilin ever on Sunday, Monday, Tuesday, Friday or Shabbos
     return (
@@ -378,7 +400,7 @@ export default class jDate {
   }
 
   /** Gets the candle lighting time for the current Jewish date for the given Location object. */
-  getCandleLighting(location) {
+  getCandleLighting(location: Location) {
     if (!location) {
       throw 'To get sunrise and sunset, the location needs to be supplied';
     }
@@ -389,19 +411,19 @@ export default class jDate {
   }
 
   /** Get the sedra of the week for the current Jewish date. */
-  getSedra(israel) {
-    return new Sedra(this, israel);
+  getSedra(israel: boolean) {
+    return Sedra(this, israel);
   }
 
   /** Get the prakim of Pirkei Avos for the current Jewish date. */
-  getPirkeiAvos(israel) {
+  getPirkeiAvos(israel: boolean) {
     return PirkeiAvos.getPrakim(this, israel);
   }
 
   /** Gets sunrise and sunset time for the current Jewish date at the given Location.
    *
    * Return format: {sunrise: {hour: 6, minute: 18}, sunset: {hour: 19, minute: 41}} */
-  getSunriseSunset(location, ignoreElevation) {
+  getSunriseSunset(location: Location, ignoreElevation = false) {
     if (!location) {
       throw 'To get sunrise and sunset, the location needs to be supplied';
     }
@@ -411,7 +433,7 @@ export default class jDate {
   /** Gets Chatzos for both the day and the night for the current Jewish date at the given Location.
    *
    *Return format: {hour: 11, minute: 48} */
-  getChatzos(location) {
+  getChatzos(location: Location) {
     if (!location) {
       throw 'To get Chatzos, the location needs to be supplied';
     }
@@ -419,7 +441,7 @@ export default class jDate {
   }
 
   /** Gets the length of a single Sha'a Zmanis in minutes for the current Jewish date at the given Location. */
-  getShaaZmanis(location, offset) {
+  getShaaZmanis(location: Location, offset: number) {
     if (!location) {
       throw 'To get the Shaa Zmanis, the location needs to be supplied';
     }
@@ -441,11 +463,17 @@ export default class jDate {
    * @param {Location} location
    * @returns {[{title:string, value:string, important:boolean}]}
    */
-  getAllDetails(location) {
-    const list = [],
+  getAllDetails(
+    location: Location
+  ): Array<{ title: string; value: string | null; important: boolean }> {
+    const list: Array<{
+        title: string;
+        value: string | null;
+        important: boolean;
+      }> = [],
       sdate = this.getDate(),
-      dailyInfos = this.getHolidays(location.Israel),
-      { sunrise, sunset } = this.getSunriseSunset(location),
+      dailyInfos = this.getHolidays(location.Israel, false),
+      { sunrise, sunset } = this.getSunriseSunset(location, false),
       suntimesMishor = this.getSunriseSunset(location, true),
       sunriseMishor = suntimesMishor.sunrise,
       sunsetMishor = suntimesMishor.sunset,
@@ -466,7 +494,7 @@ export default class jDate {
         sunsetMishor &&
         Zmanim.getShaaZmanisMga(suntimesMishor, location.Israel),
       feet = `${(location.Elevation * 3.28084).toFixed(0).toString()} ft.`,
-      addItem = (title, value, important) =>
+      addItem = (title: string, value: string | null, important = false) =>
         list.push({ title, value, important });
 
     addItem('Jewish Date', this.toString());
@@ -603,8 +631,10 @@ export default class jDate {
    * @param {Location} location
    * @returns {[{title:string, value:string}]}
    */
-  getAllDetailsList(location) {
-    const list = [],
+  getAllDetailsList(
+    location: Location
+  ): Array<{ title: string; value: string }> {
+    const list: Array<{ title: string; value: string }> = [],
       sdate = this.getDate(),
       dailyInfos = this.getHolidays(location.Israel),
       { sunrise, sunset } = this.getSunriseSunset(location),
@@ -628,7 +658,7 @@ export default class jDate {
         sunsetMishor &&
         Zmanim.getShaaZmanisFromSunTimes(suntimesMishor, 90),
       feet = `${(location.Elevation * 3.28084).toFixed(0).toString()} ft.`,
-      addItem = (title, value) => {
+      addItem = (title: string, value: string) => {
         const item = { title, value };
         list.push(item);
         return item;
@@ -679,20 +709,17 @@ export default class jDate {
     ) {
       addItem(
         'Netz Hachama - Sunrise',
-        Utils.getTimeString(sunrise, false, true),
-        true
+        Utils.getTimeString(sunrise, false, true)
       );
       addItem(
         'Netz Hachama (sea level)',
-        Utils.getTimeString(sunriseMishor, false, true),
-        true
+        Utils.getTimeString(sunriseMishor, false, true)
       );
     } else {
       addItem(`Sunrise at ${feet}`, Utils.getTimeString(sunrise, false, true));
       addItem(
         'Netz Hachama (sea level)',
-        Utils.getTimeString(sunriseMishor, false, true),
-        true
+        Utils.getTimeString(sunriseMishor, false, true)
       );
     }
     addItem(
@@ -789,7 +816,17 @@ export default class jDate {
    *  jDate.toJDate(jewishYear, jewishMonth, jewishDay, absoluteDate) - Most efficient. Needs no calculations at all. The absoluteDate is the number of days elapsed since the theoretical date Sunday, December 31, 0001 BCE.
    *  jDate.toJDate( { year: 5776, month: 4, day: 5, abs: 122548708 } ) - same as jDate.toJDate(jewishYear, jewishMonth, jewishDay, absoluteDate)
    *************************************************************************************************************** */
-  static toJDate(arg, month, day, abs) {
+  static toJDate(
+    arg?:
+      | string
+      | number
+      | Date
+      | DayMonthYear
+      | [number, number, number, number],
+    month?: number,
+    day?: number,
+    abs?: number
+  ) {
     if (arguments.length === 0) {
       return new jDate();
     }
@@ -803,7 +840,7 @@ export default class jDate {
   }
 
   /** Calculate the Jewish year, month and day for the given absolute date. */
-  static fromAbs(absDay) {
+  static fromAbs(absDay: number) {
     // To save on calculations, start with a few years before date
     let year = 3761 + Utils.toInt(absDay / (absDay > 0 ? 366 : 300)),
       month,
@@ -828,7 +865,7 @@ export default class jDate {
    * Gets the absolute date of the given javascript Date object.
    * @param {Date} date
    */
-  static absSd(date) {
+  static absSd(date: Date) {
     // Get the correct number of milliseconds since 1/1/1970 00:00:00 UTC until current system time
     const ms = date.valueOf() - date.getTimezoneOffset() * 60000,
       // The number of full days since 1/1/1970.
@@ -838,7 +875,7 @@ export default class jDate {
   }
 
   /** Calculate the absolute date for the given Jewish Date. */
-  static absJd(year, month, day) {
+  static absJd(year: number, month: number, day: number) {
     // The number of total days.
     let dayInYear = day; // day is the number of days so far this month.
     if (month < 7) {
@@ -868,7 +905,7 @@ export default class jDate {
   /**
    * Gets a javascript date from an absolute date
    */
-  static sdFromAbs(abs) {
+  static sdFromAbs(abs: number) {
     // The "zero hour" for Javascript is 1/1/1970 0:00:00 UTC.
     // If the time zone offset was more than 0, the current time zone was earlier than UTC at the time.
     // As the "zero hour" is at midnight, so if the current time was earlier than that, than it was during the previous date.
@@ -884,7 +921,7 @@ export default class jDate {
   }
 
   /** Number of days in the given Jewish Month. Nissan is 1 and Adar Sheini is 13. */
-  static daysJMonth(year, month) {
+  static daysJMonth(year: number, month: number): number {
     switch (month) {
       // Nissan, Sivan, Av, Tishrei and Shvat always have 30 days
       case 1:
@@ -909,11 +946,13 @@ export default class jDate {
       // Adar has 29 days unless it is Adar Rishon.
       case 12:
         return jDate.isJdLeapY(year) ? 30 : 29;
+      default:
+        return 0;
     }
   }
 
   /** Elapsed days since creation of the world until Rosh Hashana of the given year */
-  static tDays(year) {
+  static tDays(year: number) {
     /* As this function is called many times, often on the same year for all types of calculations,
         we save a list of years with their elapsed values. */
     const cached = _yearCache.find(y => y.year === year);
@@ -964,27 +1003,27 @@ export default class jDate {
   }
 
   /** Number of days in the given Jewish Year. */
-  static daysJYear(year) {
+  static daysJYear(year: number) {
     return jDate.tDays(year + 1) - jDate.tDays(year);
   }
 
   /** Does Cheshvan for the given Jewish Year have 30 days? */
-  static isLongCheshvan(year) {
+  static isLongCheshvan(year: number) {
     return jDate.daysJYear(year) % 10 === 5;
   }
 
   /** Does Kislev for the given Jewish Year have 29 days? */
-  static isShortKislev(year) {
+  static isShortKislev(year: number) {
     return jDate.daysJYear(year) % 10 === 3;
   }
 
   /** Does the given Jewish Year have 13 months? */
-  static isJdLeapY(year) {
+  static isJdLeapY(year: number) {
     return (7 * year + 1) % 19 < 7;
   }
 
   /** Number of months in Jewish Year. */
-  static monthsJYear(year) {
+  static monthsJYear(year: number) {
     return jDate.isJdLeapY(year) ? 13 : 12;
   }
 
@@ -993,7 +1032,7 @@ export default class jDate {
    * For example for December 4th 2021, we would return:
    * ['Shabbos Kodesh', 'Rosh Chodesh Teves', 'Chanuka - Six Candles']
    */
-  static getHolidays(jd, israel, hebrew) {
+  static getHolidays(jd: jDate, israel: boolean, hebrew: boolean) {
     const list = [],
       jYear = jd.Year,
       jMonth = jd.Month,
@@ -1038,9 +1077,11 @@ export default class jDate {
         list.push(
           !hebrew
             ? `Pirkei Avos - ${pa
-                .map(s => `${Utils.toSuffixed(s)} Perek`)
+                .map((s: number) => `${Utils.toSuffixed(s)} Perek`)
                 .join(' and ')}`
-            : `פרקי אבות - ${pa.map(s => `${Utils.toJNum(s)} פרק`).join('ו')}`
+            : `פרקי אבות - ${pa
+                .map((s: number) => `${Utils.toJNum(s)} פרק`)
+                .join('ו')}`
         );
       }
     }
@@ -1277,7 +1318,7 @@ export default class jDate {
   /**
    * Gets a String with the name of a major holiday or fast for the given day.
    */
-  static getMajorHoliday(jd, israel, hebrew) {
+  static getMajorHoliday(jd: jDate, israel: boolean, hebrew: boolean): string {
     const jYear = jd.Year,
       jMonth = jd.Month,
       jDay = jd.Day,
@@ -1344,6 +1385,9 @@ export default class jDate {
           if (jDay === 14 || jDay === 15) return !hebrew ? 'Purim' : 'פורים';
         }
         break;
+      default:
+        return '';
     }
+    return '';
   }
 }
