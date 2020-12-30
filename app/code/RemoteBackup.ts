@@ -47,6 +47,8 @@ const serverURL = isDev()
   ? 'https://compute.dev/api/luach'
   : 'https://www.compute.co.il/api/luach';
 
+const authCodeSplitter = ':~~~~~~~~~~~~~~~~~:';
+
 export default class RemoteBackup {
   localStorage: LocalStorage = new LocalStorage();
 
@@ -80,7 +82,7 @@ export default class RemoteBackup {
   async getAccountName() {
     const localStorage = await this.getLocalStorage();
     return Buffer.from(
-      `${localStorage.remoteUserName}:~:${localStorage.remotePassword}`
+      `${localStorage.remoteUserName}${authCodeSplitter}${localStorage.remotePassword}`
     ).toString('base64');
   }
 
