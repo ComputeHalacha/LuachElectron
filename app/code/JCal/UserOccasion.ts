@@ -1,4 +1,4 @@
-import jDate from './jDate';
+import JDate from './JDate';
 import Utils from './Utils';
 
 enum UserOccasionTypes {
@@ -29,7 +29,7 @@ class UserOccasion {
 
   static defaultColor = '#b96';
 
-  private privateJdate: jDate | null = null;
+  private privateJdate: JDate | null = null;
 
   private privateSdate: Date | null = null;
 
@@ -104,14 +104,14 @@ class UserOccasion {
   /**
    * If the given date matches any iteration of an annual Occasion,
    * returns the year number for that iteration in the format: "5th year"
-   * @param {jDate | Date} date Can be either a jDate or a Javascript Date
+   * @param {JDate | Date} date Can be either a JDate or a Javascript Date
    */
-  getYearString(date: jDate | Date) {
+  getYearString(date: JDate | Date) {
     if (!date) {
       return '';
     }
     if (this.occasionType === UserOccasionTypes.HebrewDateRecurringYearly) {
-      const jdate = date instanceof jDate ? date : new jDate(date);
+      const jdate = date instanceof JDate ? date : new JDate(date);
       if (
         jdate.Year > this.jdate.Year &&
         jdate.Month === this.jdate.Month &&
@@ -163,18 +163,18 @@ class UserOccasion {
    */
   getNextInstance() {
     const nowSd = new Date();
-    const nowJd = new jDate(nowSd);
+    const nowJd = new JDate(nowSd);
     let jd;
     let sd;
     switch (this.occasionType) {
       case UserOccasionTypes.HebrewDateRecurringYearly:
-        jd = new jDate(nowJd.Year, this.jdate.Month, this.jdate.Day);
+        jd = new JDate(nowJd.Year, this.jdate.Month, this.jdate.Day);
         while (jd.getDate() < nowSd) {
           jd = jd.addYears(1);
         }
         return jd;
       case UserOccasionTypes.HebrewDateRecurringMonthly:
-        jd = new jDate(nowJd.Year, nowJd.Month, this.jdate.Day);
+        jd = new JDate(nowJd.Year, nowJd.Month, this.jdate.Day);
         while (jd.getDate() < nowSd) {
           jd = jd.addMonths(1);
         }
@@ -188,7 +188,7 @@ class UserOccasion {
         while (sd < nowSd) {
           sd.setFullYear(sd.getFullYear() + 1);
         }
-        return new jDate(sd);
+        return new JDate(sd);
       case UserOccasionTypes.SecularDateRecurringMonthly:
         sd = new Date(
           nowSd.getFullYear(),
@@ -198,7 +198,7 @@ class UserOccasion {
         while (sd < nowSd) {
           sd.setMonth(sd.getMonth() + 1);
         }
-        return new jDate(sd);
+        return new JDate(sd);
       default:
         return null;
     }
@@ -209,18 +209,18 @@ class UserOccasion {
    */
   getPreviousInstance() {
     const nowSd = new Date();
-    const nowJd = new jDate(nowSd);
-    let jd: jDate | null = null;
+    const nowJd = new JDate(nowSd);
+    let jd: JDate | null = null;
     let sd: Date;
     switch (this.occasionType) {
       case UserOccasionTypes.HebrewDateRecurringYearly:
-        jd = new jDate(nowJd.Year, this.jdate.Month, this.jdate.Day);
+        jd = new JDate(nowJd.Year, this.jdate.Month, this.jdate.Day);
         while (jd.getDate() > nowSd) {
           jd = jd.addYears(-1);
         }
         break;
       case UserOccasionTypes.HebrewDateRecurringMonthly:
-        jd = new jDate(nowJd.Year, nowJd.Month, this.jdate.Day);
+        jd = new JDate(nowJd.Year, nowJd.Month, this.jdate.Day);
         while (jd.getDate() > nowSd) {
           jd = jd.addMonths(-1);
         }
@@ -234,7 +234,7 @@ class UserOccasion {
         while (sd > nowSd) {
           sd.setFullYear(sd.getFullYear() - 1);
         }
-        jd = new jDate(sd);
+        jd = new JDate(sd);
         break;
       case UserOccasionTypes.SecularDateRecurringMonthly:
         sd = new Date(
@@ -245,7 +245,7 @@ class UserOccasion {
         while (sd > nowSd) {
           sd.setMonth(sd.getMonth() - 1);
         }
-        jd = new jDate(sd);
+        jd = new JDate(sd);
         break;
       default:
         jd = null;
@@ -296,7 +296,7 @@ class UserOccasion {
    */
   get jdate() {
     if (!this.privateJdate) {
-      this.privateJdate = new jDate(this.dateAbs);
+      this.privateJdate = new JDate(this.dateAbs);
     }
     return this.privateJdate;
   }
@@ -315,7 +315,7 @@ class UserOccasion {
    */
   get sdate() {
     if (!this.privateSdate) {
-      this.privateSdate = jDate.sdFromAbs(this.dateAbs);
+      this.privateSdate = JDate.sdFromAbs(this.dateAbs);
     }
     return this.privateSdate;
   }
@@ -324,7 +324,7 @@ class UserOccasion {
    * Set the date of this event by supplying a Javascript Date.
    */
   set sdate(sd) {
-    this.privateJdate = new jDate(sd);
+    this.privateJdate = new JDate(sd);
     this.privateSdate = sd;
     this.dateAbs = this.privateJdate.Abs;
   }
@@ -348,23 +348,23 @@ class UserOccasion {
    * Returns a list of occasions for the given date.
    * Works out recurring occasions and returns those that the
    * given date matches any iteration.
-   * @param {jDate} jdate
+   * @param {JDate} jdate
    * @param {[UserOccasion]} allOccasions
    */
-  static getOccasionsForDate(jdate: jDate, allOccasions: Array<UserOccasion>) {
+  static getOccasionsForDate(jdate: JDate, allOccasions: Array<UserOccasion>) {
     return allOccasions.filter(o => {
-      const ojDate = o.jdate;
+      const oJDate = o.jdate;
       switch (o.occasionType) {
         case UserOccasionTypes.OneTime:
           return o.dateAbs === jdate.Abs;
         case UserOccasionTypes.HebrewDateRecurringYearly:
-          return ojDate.Month === jdate.Month && ojDate.Day === jdate.Day;
+          return oJDate.Month === jdate.Month && oJDate.Day === jdate.Day;
         case UserOccasionTypes.HebrewDateRecurringMonthly:
-          return ojDate.Day === jdate.Day;
+          return oJDate.Day === jdate.Day;
         case UserOccasionTypes.SecularDateRecurringYearly:
         case UserOccasionTypes.SecularDateRecurringMonthly: {
           const sdate1 = jdate.getDate();
-          const sdate2 = ojDate.getDate();
+          const sdate2 = oJDate.getDate();
           // For both secular occasion types, the day of the month must match
           if (sdate1.getDate() !== sdate2.getDate()) {
             return false;

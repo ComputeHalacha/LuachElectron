@@ -151,6 +151,7 @@ export function isDev() {
  */
 export function log(txt: string, ...other: Array<unknown>) {
   if (isDev()) {
+    // eslint-disable-next-line no-console
     console.log(txt, ...other);
   }
 }
@@ -160,6 +161,7 @@ export function log(txt: string, ...other: Array<unknown>) {
  */
 export function warn(txt: string, ...other: Array<unknown>) {
   if (isDev()) {
+    // eslint-disable-next-line no-console
     console.warn(txt, ...other);
   }
 }
@@ -169,6 +171,7 @@ export function warn(txt: string, ...other: Array<unknown>) {
  */
 export function error(txt: string, ...other: Array<unknown>) {
   if (isDev()) {
+    // eslint-disable-next-line no-console
     console.error(txt, ...other);
   }
 }
@@ -205,7 +208,7 @@ export function getNewDatabaseName() {
  * Returns a deep clone of any object - note does not clone functions.
  * @param {Object} obj any object
  */
-export function deepClone(obj: Object): Object {
+export function deepClone(obj: unknown): unknown {
   return JSON.parse(JSON.stringify(obj));
 }
 

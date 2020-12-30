@@ -15,7 +15,7 @@ import {
 } from 'react-bootstrap';
 import { range } from '../code/GeneralUtils';
 import Utils from '../code/JCal/Utils';
-import jDate from '../code/JCal/jDate';
+import JDate from '../code/JCal/JDate';
 import NumberPicker from './NumberPicker';
 
 export default function JdateChooser(props) {
@@ -24,10 +24,10 @@ export default function JdateChooser(props) {
     months = range(1, 13),
     changeDate = (year, month, day) => {
       // To prevent user from choosing a non-exiting month or day
-      const daysInMonth = jDate.daysJMonth(year, month),
-        monthsInYear = jDate.monthsJYear(year);
+      const daysInMonth = JDate.daysJMonth(year, month),
+        monthsInYear = JDate.monthsJYear(year);
       setDate(
-        new jDate(
+        new JDate(
           year,
           // Choosing Adar Sheini in a non-leap-year will set the month to Adar
           Math.min(month, monthsInYear),
@@ -89,7 +89,7 @@ export default function JdateChooser(props) {
               <span>Jewish Day</span>
               <NumberPicker
                 startNumber={1}
-                endNumber={jDate.daysJMonth(jdate.Year, jdate.Month)}
+                endNumber={JDate.daysJMonth(jdate.Year, jdate.Month)}
                 onChange={value => changeDate(jdate.Year, jdate.Month, value)}
                 value={jdate.Day}
               />

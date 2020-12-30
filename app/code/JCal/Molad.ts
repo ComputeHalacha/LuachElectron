@@ -1,5 +1,5 @@
 import Utils from './Utils';
-import jDate from './jDate';
+import JDate from './JDate';
 import Location from './Location';
 /* Returns the molad for the given jewish month and year.
  * Algorithm was adapted from Hebcal by Danny Sadinoff
@@ -16,7 +16,7 @@ export default class Molad {
     let monthAdj = month - 7;
 
     if (monthAdj < 0) {
-      monthAdj += jDate.monthsJYear(year);
+      monthAdj += JDate.monthsJYear(year);
     }
     totalMonths = Utils.toInt(
       monthAdj +
@@ -34,7 +34,7 @@ export default class Molad {
     parts = Utils.toInt((partsElapsed % 1080) + 1080 * (hoursElapsed % 24));
 
     return {
-      jDate: new jDate(
+      JDate: new JDate(
         1 + 29 * Utils.toInt(totalMonths) + Utils.toInt(hoursElapsed / 24)
       ),
       time: {
@@ -50,11 +50,11 @@ export default class Molad {
   // to determine whether to display "Night" or "Motzai Shabbos" etc. (check this...)
   static getString(year: number, month: number) {
     const molad = Molad.getMolad(month, year);
-    const nightfall = molad.jDate.getSunriseSunset(Location.getJerusalem())
+    const nightfall = molad.JDate.getSunriseSunset(Location.getJerusalem())
       .sunset;
     const isNight =
       Utils.totalMinutes(Utils.timeDiff(molad.time, nightfall)) >= 0;
-    const dow = molad.jDate.getDayOfWeek();
+    const dow = molad.JDate.getDayOfWeek();
     let str = '';
 
     if (isNaN(nightfall.hour)) {
@@ -78,11 +78,11 @@ export default class Molad {
   // to determine whether to display "ליל/יום" or "מוצאי שב"ק" etc.
   static getStringHeb(year: number, month: number) {
     const molad = Molad.getMolad(month, year);
-    const nightfall = molad.jDate.getSunriseSunset(Location.getJerusalem())
+    const nightfall = molad.JDate.getSunriseSunset(Location.getJerusalem())
       .sunset;
     const isNight =
       Utils.totalMinutes(Utils.timeDiff(molad.time, nightfall)) >= 0;
-    const dow = molad.jDate.getDayOfWeek();
+    const dow = molad.JDate.getDayOfWeek();
     let str = '';
 
     if (dow === 6) {

@@ -1,7 +1,7 @@
 import { NightDay, Onah } from './Onah';
 import Utils from '../JCal/Utils';
 import ProblemFlag from './ProblemFlag';
-import jDate from '../JCal/jDate';
+import JDate from '../JCal/JDate';
 
 /**
  * Represents all the problems of a single Onah.
@@ -10,12 +10,12 @@ import jDate from '../JCal/jDate';
 export default class ProblemOnah extends Onah {
   flagsList: ProblemFlag[];
   /**
-   * @param {jDate} jdate
+   * @param {JDate} jdate
    * @param {NightDay} nightDay
    * @param {[String]} flagsList
    */
   constructor(
-    jdate: jDate,
+    jdate: JDate,
     nightDay: NightDay,
     flagsList?: Array<ProblemFlag>
   ) {
@@ -62,7 +62,7 @@ export default class ProblemOnah extends Onah {
    * @param {JDate} jdate
    * @param {[ProblemOnah]} probOnahList
    */
-  static getProbsForDate(jdate: jDate, probOnahList: Array<ProblemOnah>) {
+  static getProbsForDate(jdate: JDate, probOnahList: Array<ProblemOnah>) {
     return (
       probOnahList &&
       probOnahList.length > 0 &&

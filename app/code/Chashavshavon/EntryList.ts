@@ -70,6 +70,7 @@ export default class EntryList {
    * @param {*} Entry to test
    */
   contains(entry: Entry) {
+    // eslint-disable-next-line no-bitwise
     return !!~this.list.findIndex(e => e === entry || e.isSameEntry(entry));
   }
 

@@ -1,4 +1,4 @@
-import jDate from './JCal/jDate';
+import JDate from './JCal/JDate';
 import Utils from './JCal/Utils';
 import { UserOccasion } from './JCal/UserOccasion';
 import { NightDay } from './Chashavshavon/Onah';
@@ -6,7 +6,7 @@ import AppData from './Data/AppData';
 import { TaharaEvent } from './Chashavshavon/TaharaEvent';
 
 interface Day {
-  jdate: jDate;
+  jdate: JDate;
   sdate: Date;
   hasEntryNight: boolean;
   hasEntryDay: boolean;
@@ -24,18 +24,18 @@ interface Day {
 export default class Month {
   isJdate: boolean;
   appData: AppData;
-  date: jDate | Date;
+  date: JDate | Date;
   /**
-   * @param {jDate | Date} date
+   * @param {JDate | Date} date
    * @param {AppData} appData
    */
-  constructor(date: jDate | Date, appData: AppData) {
-    this.isJdate = date instanceof jDate;
+  constructor(date: JDate | Date, appData: AppData) {
+    this.isJdate = date instanceof JDate;
     this.appData = appData;
 
     // Set the date to the first of the month.
     if (this.isJdate) {
-      this.date = new jDate((date as jDate).Year, (date as jDate).Month, 1);
+      this.date = new JDate((date as JDate).Year, (date as JDate).Month, 1);
     } else if (date.getDate() === 1) {
       this.date = date;
     } else {
@@ -104,9 +104,9 @@ export default class Month {
     return this.isJdate ? this.getAllDaysJdate() : this.getAllDaysSdate();
   }
 
-  getSingleDay(ambiDate: jDate | Date): Day {
+  getSingleDay(ambiDate: JDate | Date): Day {
     const jdate =
-      (ambiDate instanceof jDate && ambiDate) || new jDate(ambiDate);
+      (ambiDate instanceof JDate && ambiDate) || new JDate(ambiDate);
     const sdate = (ambiDate instanceof Date && ambiDate) || ambiDate.getDate();
     const hasEntryNight = this.appData.EntryList.list.some(
       e => Utils.isSameJdate(e.date, jdate) && e.nightDay === NightDay.Night
@@ -146,11 +146,11 @@ export default class Month {
   }
 
   getAllDaysJdate(): Array<Array<Day>> {
-    const jd = this.date as jDate;
-    const daysInMonth = jDate.daysJMonth(jd.Year, jd.Month);
+    const jd = this.date as JDate;
+    const daysInMonth = JDate.daysJMonth(jd.Year, jd.Month);
     const weeks: Array<Array<Day>> = [new Array(7).fill(null)];
     for (let day = 1; day <= daysInMonth; day++) {
-      const jdate = new jDate(jd.Year, jd.Month, day);
+      const jdate = new JDate(jd.Year, jd.Month, day);
       const dow = jdate.DayOfWeek;
       weeks[weeks.length - 1][dow] = this.getSingleDay(jdate);
       if (dow === 6 && day < daysInMonth) {
@@ -186,7 +186,7 @@ export default class Month {
 
   get prevYear() {
     if (this.isJdate) {
-      return new Month((this.date as jDate).addYears(-1), this.appData);
+      return new Month((this.date as JDate).addYears(-1), this.appData);
     }
     return new Month(
       new Date(
@@ -200,7 +200,7 @@ export default class Month {
 
   get nextYear() {
     if (this.isJdate) {
-      return new Month((this.date as jDate).addYears(1), this.appData);
+      return new Month((this.date as JDate).addYears(1), this.appData);
     }
     return new Month(
       new Date(
@@ -214,7 +214,7 @@ export default class Month {
 
   get prevMonth() {
     if (this.isJdate) {
-      return new Month((this.date as jDate).addMonths(-1), this.appData);
+      return new Month((this.date as JDate).addMonths(-1), this.appData);
     }
     return new Month(
       new Date(
@@ -228,7 +228,7 @@ export default class Month {
 
   get nextMonth() {
     if (this.isJdate) {
-      return new Month((this.date as jDate).addMonths(1), this.appData);
+      return new Month((this.date as JDate).addMonths(1), this.appData);
     }
     return new Month(
       new Date(

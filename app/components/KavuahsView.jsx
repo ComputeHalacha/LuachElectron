@@ -9,7 +9,7 @@ function getDaysList(jdate) {
   return daysList;
 }
 
-export default function KavuahsView({appData, setAppData, jdate}) {
+export default function KavuahsView({ appData, setAppData, jdate }) {
   return (
     <Container fluid>
       <Row xs={12}>

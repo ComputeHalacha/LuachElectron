@@ -1,15 +1,15 @@
-﻿import jDate from './jDate';
+﻿import JDate from './JDate';
 import Utils from './Utils';
 
 /** **************************************************************************************************************
  * Computes the Perek/Prakim of the week for the given Shabbos.
  * Returns an array of prakim (integers) (either one or two) for the given Jewish Date
  * Sample of use to get todays sedra in Israel:
- *     const prakim = PirkeiAvos.getPrakim(new jDate(), true);
+ *     const prakim = PirkeiAvos.getPrakim(new JDate(), true);
  *     const str = 'Pirkei Avos: ' + prakim.map(s => `${Utils.toSuffixed(s)} Perek`).join(' and ');
  * ************************************************************************************************************** */
 export default class PirkeiAvos {
-  static getPrakim(jd: jDate, israel: boolean) {
+  static getPrakim(jd: JDate, israel: boolean) {
     if (jd.getDayOfWeek() !== 6) {
       return [];
     }
@@ -40,11 +40,11 @@ export default class PirkeiAvos {
     return [];
   }
 
-  static get1stPerek = (jd: jDate, israel: boolean) => {
+  static get1stPerek = (jd: JDate, israel: boolean) => {
     const jYear = jd.Year,
       jMonth = jd.Month,
       jDay = jd.Day,
-      pes1 = new jDate(jYear, 1, 15),
+      pes1 = new JDate(jYear, 1, 15),
       pes1Dow = pes1.getDayOfWeek(),
       // How many days after the first day of pesach was the first shabbos after pesach
       shb1 = (!israel && pes1Dow === 6 ? 20 : 13) - pes1Dow,
@@ -74,16 +74,16 @@ export default class PirkeiAvos {
     return prk;
   };
 
-  static ellul = (jd:jDate, israel:boolean) => {
+  static ellul = (jd: JDate, israel: boolean) => {
     let prakim;
     const jYear = jd.Year,
       jDay = jd.Day,
       // The fist day of Ellul.
       // The year/month/day/absoluteDay constructor for JDate is used for efficiency.
-      day1 = new jDate(jYear, 6, 1, jd.Abs - jd.Day + 1),
+      day1 = new JDate(jYear, 6, 1, jd.Abs - jd.Day + 1),
       day1DOW = day1.getDayOfWeek(),
       shabbos1Day = day1DOW === 6 ? 1 : 6 - ((day1DOW + 6) % 6) + 1,
-      shabbos1Date = new jDate(
+      shabbos1Date = new JDate(
         jYear,
         6,
         shabbos1Day,

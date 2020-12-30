@@ -3,7 +3,7 @@ import { Onah, NightDay } from './Onah';
 import { setDefault } from '../GeneralUtils';
 import Entry from './Entry';
 import Settings from '../Settings';
-import jDate from '../JCal/jDate';
+import JDate from '../JCal/JDate';
 
 enum KavuahTypes {
   Haflagah = 1,
@@ -34,7 +34,7 @@ class Kavuah {
 
   constructor(
     kavuahType: KavuahTypes,
-    settingEntry: Entry|undefined,
+    settingEntry: Entry | undefined,
     specialNumber: number,
     cancelsOnahBeinunis = true,
     active = true,
@@ -235,13 +235,13 @@ class Kavuah {
    * according to the pattern of the given Kavuah.
    * Only applicable to "Independent" type Kavuahs.
    * @param {Kavuah} kavuah The kavuah to get the list for
-   * @param {jDate} jdate The date until when to work out the theoretical iterations.
+   * @param {JDate} jdate The date until when to work out the theoretical iterations.
    * @param {boolean} dilugChodeshPastEnds
    * @returns {Array<Onah>}
    */
   static getIndependentIterations(
     kavuah: Kavuah,
-    jdate: jDate,
+    jdate: JDate,
     dilugChodeshPastEnds: boolean
   ): Array<Onah> {
     let iterations: Array<Onah> = [];
@@ -274,10 +274,10 @@ class Kavuah {
    * Returns a list of Onahs that theoretically should have Entries on them
    * according to the pattern of this DayOfWeek Kavuah.
    * @param {Kavuah} kavuah The kavuah to get the list for
-   * @param {jDate} jdate The date until when to work out the theoretical iterations.
+   * @param {JDate} jdate The date until when to work out the theoretical iterations.
    * @returns {Array<Onah>}
    */
-  static getDayOfWeekIterations(kavuah: Kavuah, jdate: jDate): Array<Onah> {
+  static getDayOfWeekIterations(kavuah: Kavuah, jdate: JDate): Array<Onah> {
     const iterations: Array<Onah> = [];
     if (kavuah.kavuahType === KavuahTypes.DayOfWeek) {
       let nextIteration = kavuah.settingEntry.date;
@@ -293,13 +293,13 @@ class Kavuah {
    * Returns a list of Onahs that theoretically should have Entries on them
    * according to the pattern of the given DilugDayOfMonth Kavuah.
    * @param {Kavuah} kavuah The kavuah to get the list for
-   * @param {jDate} jdate The date until when to work out the theoretical iterations.
+   * @param {JDate} jdate The date until when to work out the theoretical iterations.
    * @param {boolean} dilugChodeshPastEnds Continue incrementing into another month?
    * @returns {Array<Onah>}
    */
   static getDilugDayOfMonthIterations(
     kavuah: Kavuah,
-    jdate: jDate,
+    jdate: JDate,
     dilugChodeshPastEnds: boolean
   ): Array<Onah> {
     const iterations: Array<Onah> = [];
@@ -460,8 +460,8 @@ class Kavuah {
     settings: Settings
   ): Array<{ kavuah: Kavuah; entries: Array<Entry> }> {
     const list: Array<{ kavuah: Kavuah; entries: Array<Entry> }> = [];
-    const nextMonth: jDate = entry.date.addMonths(1);
-    const thirdMonth: jDate = nextMonth.addMonths(1);
+    const nextMonth: JDate = entry.date.addMonths(1);
+    const thirdMonth: JDate = nextMonth.addMonths(1);
     // We look for an entry that is exactly one Jewish month later
     // Note, it is irrelevant if there were other entries in the interim
     const secondFind: Entry | undefined = entryList.find(
@@ -719,14 +719,14 @@ class Kavuah {
   /**
    * Find broken Kavuahs whose type is "Independent"
    * meaning that they do not care if there were other Entries in middle.
-   * @param {jDate} jdate
+   * @param {JDate} jdate
    * @param {Array<Kavuah>} kavuahList
    * @param {Array<Entry>} entries
    * @param {Settings} settings
    * @returns {Array<Kavuah>}
    */
   static findIndependentBrokens(
-    jdate: jDate,
+    jdate: JDate,
     kavuahList: Array<Kavuah>,
     entries: Array<Entry>,
     settings: Settings

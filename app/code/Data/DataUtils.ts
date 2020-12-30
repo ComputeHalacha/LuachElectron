@@ -10,7 +10,7 @@ import {
   fileExists
 } from '../GeneralUtils';
 import AppData from './AppData';
-import jDate from '../JCal/jDate';
+import JDate from '../JCal/JDate';
 import Settings from '../Settings';
 import Location from '../JCal/Location';
 import { UserOccasion, UserOccasionTypes } from '../JCal/UserOccasion';
@@ -36,9 +36,9 @@ export default class DataUtils {
     try {
       const results = await DataUtils.executeSql('SELECT * from settings');
       const dbSet = results.list[0];
-      settings.location = await DataUtils.LocationFromDatabase(
-        dbSet.locationId
-      );
+      settings.location =
+        (await DataUtils.LocationFromDatabase(dbSet.locationId)) ||
+        Location.getLakewood();
       settings.showOhrZeruah = !!dbSet.showOhrZeruah;
       settings.keepThirtyOne = !!dbSet.keepThirtyOne;
       settings.onahBeinunis24Hours = !!dbSet.onahBeinunis24Hours;
@@ -177,7 +177,7 @@ export default class DataUtils {
           comments: string;
         }) => {
           const onah = new Onah(
-            new jDate(e.dateAbs),
+            new JDate(e.dateAbs),
             e.day ? NightDay.Day : NightDay.Night
           );
           entryList.add(
@@ -200,14 +200,14 @@ export default class DataUtils {
   }
 
   static async LocationFromDatabase(locationId: number) {
-    let location = null;
+    let location: Location | null = null;
     if (!locationId) {
       throw 'locationId parameter cannot be empty. Use GetAllLocations to retrieve all locations.';
     }
     try {
       const ls = await DataUtils.queryLocations('locationId=?', [locationId]);
       if (ls.length > 0) {
-        location = ls[0];
+        [location] = ls;
       }
     } catch (err) {
       warn(
@@ -484,7 +484,7 @@ export default class DataUtils {
           taharaEventId: number;
         }) =>
           new TaharaEvent(
-            new jDate(te.dateAbs),
+            new JDate(te.dateAbs),
             te.taharaEventType,
             te.taharaEventId
           )
@@ -782,7 +782,7 @@ export default class DataUtils {
    */
   static async executeSql(
     sql: string,
-    values?: Array<string | number | Date | boolean | null>
+    values?: Array<string | number | Date | boolean | null | undefined>
   ) {
     let resultsList = [];
     let insertId;

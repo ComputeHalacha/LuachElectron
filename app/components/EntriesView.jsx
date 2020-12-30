@@ -69,9 +69,7 @@ export default function EntriesView({ appData, setAppData, jdate }) {
         </Modal.Header>
         <Modal.Body className={styles.cardHeader}>
           <Form>
-            <Form.Group
-              controlId="jdate"
-            >
+            <Form.Group controlId="jdate">
               <Form.Label>Choose the Jewish Date</Form.Label>
               <InputGroup className="mb-3" style={{ maxWidth: '350px' }}>
                 <JdateChooser />

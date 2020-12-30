@@ -3,11 +3,17 @@ import Utils from '../JCal/Utils';
 
 export default class Entry {
   onah: Onah;
+
   entryId: number;
+
   ignoreForFlaggedDates: boolean;
+
   ignoreForKavuah: boolean;
+
   comments: string;
-  haflaga:number;
+
+  haflaga: number;
+
   /**
    * A single "ראייה" - period.
    * @param {Onah} onah Jewish date and Night/Day that the period began

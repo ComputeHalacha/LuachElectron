@@ -1,5 +1,5 @@
 import AppData from '../Data/AppData';
-import jDate from './jDate';
+import JDate from './JDate';
 import Location from './Location';
 import Utils from './Utils';
 import Zmanim from './Zmanim';
@@ -26,7 +26,7 @@ export function nowAtLocation(location: Location) {
   if (isAfterSunset(sdate, location)) {
     sdate.setDate(sdate.getDate() + 1);
   }
-  return new jDate(sdate);
+  return new JDate(sdate);
 }
 
 /**
@@ -37,14 +37,14 @@ export function getTodayJdate(appData: AppData) {
   if (appData && appData.Settings && !appData.Settings.navigateBySecularDate) {
     return nowAtLocation(appData.Settings.location);
   }
-  return new jDate();
+  return new JDate();
 }
 
 /**
  * Return true if given date is either Yom Kippur or Tish'a Be'av
  * @param {Jdate} jdate
  */
-export function isYomKippurOrTishaBav(jdate: jDate) {
+export function isYomKippurOrTishaBav(jdate: JDate) {
   if (jdate.Month === 7 && jdate.Day === 10) {
     return true;
   }
@@ -60,7 +60,7 @@ export function isYomKippurOrTishaBav(jdate: jDate) {
  * Return true if given date is either Erev Yom Kippur or Erev Tish'a Be'av
  * @param {Jdate} jdate
  */
-export function isErevYomKippurOrTishaBav(jdate: jDate) {
+export function isErevYomKippurOrTishaBav(jdate: JDate) {
   if (jdate.Month === 7 && jdate.Day === 9) {
     return true;
   }

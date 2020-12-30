@@ -1,20 +1,23 @@
 import { NightDay, Onah } from './Onah';
 import Utils from '../JCal/Utils';
-import jDate from './../JCal/jDate';
+import JDate from '../JCal/JDate';
 /**
  * Represents a single flag for a single Onah.
  * Each Onah can have multiple flags.
  */
 export default class ProblemFlag {
-  jdate: jDate;
+  jdate: JDate;
+
   nightDay: NightDay;
+
   description: string;
+
   /**
-   * @param {jDate} jdate
+   * @param {JDate} jdate
    * @param {NightDay} nightDay
    * @param {String} description
    */
-  constructor(jdate: jDate, nightDay: NightDay, description: string) {
+  constructor(jdate: JDate, nightDay: NightDay, description: string) {
     if (!jdate) {
       throw 'jdate must be supplied.';
     }
@@ -37,7 +40,7 @@ export default class ProblemFlag {
    * Tests to see if the given ProblemFlag matches this one.
    * @param {ProblemFlag} prob
    */
-  isSameProb(prob: ProblemFlagn) {
+  isSameProb(prob: ProblemFlag) {
     return (
       Utils.isSameJdate(this.jdate, prob.jdate) &&
       this.nightDay === prob.nightDay &&

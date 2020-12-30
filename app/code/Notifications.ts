@@ -1,5 +1,5 @@
 import Utils from './JCal/Utils';
-import { nowAtLocation } from './JCal/jDateUtils';
+import { nowAtLocation } from './JCal/JDateUtils';
 import { NightDay } from './Chashavshavon/Onah';
 import { log, range } from './GeneralUtils';
 

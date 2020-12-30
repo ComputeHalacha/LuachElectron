@@ -1,4 +1,4 @@
-import jDate from '../JCal/jDate';
+import JDate from '../JCal/JDate';
 
 enum TaharaEventType {
   Hefsek = 1,
@@ -8,14 +8,14 @@ enum TaharaEventType {
 }
 
 class TaharaEvent {
-  jdate: jDate;
+  jdate: JDate;
 
   taharaEventType: TaharaEventType;
 
   taharaEventId: number;
 
   constructor(
-    jdate: jDate,
+    jdate: JDate,
     taharaEventType: TaharaEventType,
     taharaEventId: number
   ) {

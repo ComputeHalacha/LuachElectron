@@ -1,9 +1,9 @@
 import Utils from './Utils';
-import jDate from './jDate';
+import JDate from './JDate';
 import { isValidDate } from '../GeneralUtils';
 import Location from './Location';
 
-interface HourMinute {
+export interface HourMinute {
   hour: number;
   minute: number;
 }
@@ -16,20 +16,20 @@ interface HourMinute {
 export default class Zmanim {
   /**
    * Gets sunrise and sunset time for given date and Location.
-   * Accepts a javascript Date object, a string for creating a javascript date object or a jDate object.
+   * Accepts a javascript Date object, a string for creating a javascript date object or a JDate object.
    * Location object is required.
    * @returns {{sunrise:{hour:Number, minute:Number},sunset:{hour:Number, minute:Number}}
-   * @param {Date | jDate} date A Javascript Date or Jewish Date for which to calculate the sun times.
+   * @param {Date | JDate} date A Javascript Date or Jewish Date for which to calculate the sun times.
    * @param {Location} location Where on the globe to calculate the sun times for.
    * @param {Boolean} considerElevation
    */
   static getSunTimes(
-    date: string | number | jDate | Date,
+    date: string | number | JDate | Date,
     location: Location,
     considerElevation = true
   ) {
     let sdate: Date;
-    if (date instanceof jDate) {
+    if (date instanceof JDate) {
       sdate = date.getDate();
     } else {
       sdate = new Date(date);
@@ -39,9 +39,10 @@ export default class Zmanim {
       throw 'Zmanim.getSunTimes: supplied date parameter cannot be converted to a Date';
     }
 
+    const day = Zmanim.dayOfYear(sdate),
+      earthRadius = 6356900;
     let sunrise: HourMinute = { hour: -1, minute: -1 },
       sunset: HourMinute = { hour: -1, minute: -1 },
-      day = Zmanim.dayOfYear(sdate),
       zenithDeg = 90,
       zenithMin = 50,
       lonHour = 0,
@@ -65,17 +66,15 @@ export default class Zmanim {
       tRise = 0,
       tSet = 0,
       utRise = 0,
-      utSet = 0,
-      earthRadius = 6356900,
-      zenithAtElevation =
-        Zmanim.degToDec(zenithDeg, zenithMin) +
-        Zmanim.radToDeg(
-          Math.acos(
-            earthRadius /
-              (earthRadius + (considerElevation ? location.Elevation : 0))
-          )
-        );
-
+      utSet = 0;
+    const zenithAtElevation =
+      Zmanim.degToDec(zenithDeg, zenithMin) +
+      Zmanim.radToDeg(
+        Math.acos(
+          earthRadius /
+            (earthRadius + (considerElevation ? location.Elevation : 0))
+        )
+      );
     zenithDeg = Math.floor(zenithAtElevation);
     zenithMin = (zenithAtElevation - zenithDeg) * 60;
     cosZen = Math.cos(0.01745 * Zmanim.degToDec(zenithDeg, zenithMin));
@@ -131,17 +130,20 @@ export default class Zmanim {
     return { sunrise, sunset };
   }
 
-  static getChatzos(date: Date, location: Location) {
+  static getChatzos(date: Date | JDate, location: Location) {
     return Zmanim.getChatzosFromSuntimes(
       Zmanim.getSunTimes(date, location, false)
     );
   }
 
-  static getChatzosFromSuntimes(sunTimes: { sunrise: any; sunset: any }) {
-    const rise = sunTimes.sunrise,
-      set = sunTimes.sunset;
+  static getChatzosFromSuntimes(sunTimes: {
+    sunrise: HourMinute;
+    sunset: HourMinute;
+  }) {
+    const rise: HourMinute = sunTimes.sunrise,
+      set: HourMinute = sunTimes.sunset;
 
-    if (isNaN(rise.hour) || isNaN(set.hour)) {
+    if (Number.isNaN(rise.hour) || Number.isNaN(set.hour)) {
       return { hour: NaN, minute: NaN };
     }
 
@@ -152,7 +154,7 @@ export default class Zmanim {
     return Utils.addMinutes(rise, chatzos);
   }
 
-  static getShaaZmanis(date: Date, location: Location, offset: number) {
+  static getShaaZmanis(date: Date | JDate, location: Location, offset: number) {
     return Zmanim.getShaaZmanisFromSunTimes(
       Zmanim.getSunTimes(date, location, false),
       offset
@@ -160,13 +162,13 @@ export default class Zmanim {
   }
 
   static getShaaZmanisFromSunTimes(
-    sunTimes: { sunrise: any; sunset: any },
-    offset: number | undefined
+    sunTimes: { sunrise: HourMinute; sunset: HourMinute },
+    offset?: number | undefined
   ) {
     let rise = sunTimes.sunrise,
       set = sunTimes.sunset;
 
-    if (isNaN(rise.hour) || isNaN(set.hour)) {
+    if (Number.isNaN(rise.hour) || Number.isNaN(set.hour)) {
       return NaN;
     }
 
@@ -180,15 +182,15 @@ export default class Zmanim {
 
   static getShaaZmanisMga(
     sunTimes: {
-      sunrise: HourMinute | undefined;
-      sunset: HourMinute | undefined;
+      sunrise: HourMinute;
+      sunset: HourMinute;
     },
     israel: boolean
   ) {
     return Zmanim.getShaaZmanisFromSunTimes(sunTimes, israel ? 90 : 72);
   }
 
-  static getCandleLighting(date: Date, location: Location) {
+  static getCandleLighting(date: Date | JDate, location: Location) {
     return Zmanim.getCandleLightingFromSunTimes(
       Zmanim.getSunTimes(date, location),
       location
@@ -240,13 +242,14 @@ export default class Zmanim {
   }
 
   static timeAdj(time: number, date: Date, location: Location) {
-    let hour, min;
+    let hour,
+      t = time;
 
-    if (time < 0) {
-      time += 24;
+    if (t < 0) {
+      t += 24;
     }
-    hour = Utils.toInt(time);
-    min = Utils.toInt((time - hour) * 60 + 0.5);
+    hour = Utils.toInt(t);
+    const min = Utils.toInt((t - hour) * 60 + 0.5);
 
     if (Utils.isDST(location, date)) {
       hour++;

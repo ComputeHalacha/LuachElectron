@@ -1,4 +1,4 @@
-import jDate from '../JCal/jDate';
+import JDate from '../JCal/JDate';
 import Utils from '../JCal/Utils';
 
 enum NightDay {
@@ -6,13 +6,15 @@ enum NightDay {
   Day = 1
 }
 /**
- * Represents either the night-time or the day-time sof a single Jewish Date.
+ * Represents either the night-time or the day-time of a single Jewish Date.
  */
 class Onah {
-  jdate: jDate;
+  jdate: JDate;
+
   nightDay: NightDay;
-  constructor(jdate: jDate, nightDay: number) {
-    if (!(jdate instanceof jDate)) {
+
+  constructor(jdate: JDate, nightDay: number) {
+    if (!(jdate instanceof JDate)) {
       throw 'jdate must be supplied.';
     }
     if (![NightDay.Day, NightDay.Night].includes(nightDay)) {

@@ -5,7 +5,7 @@ import { Button, Container, Row, Col, Nav, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import routes from '../constants/routes.json';
 import { useAppGlobalState } from './AppDataContext';
-import jDate from '../code/JCal/jDate';
+import JDate from '../code/JCal/JDate';
 import Utils from '../code/JCal/Utils';
 import DayView from './DayView';
 import WeekView from './WeekView';
@@ -24,7 +24,7 @@ export default function Home() {
   const { appData } = state;
   const [showMenu, setShowMenu] = useState(true);
   const [homeViewType, setHomeViewType] = useState('day');
-  const jd = new jDate();
+  const jd = new JDate();
 
   function View() {
     switch (homeViewType) {

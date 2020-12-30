@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
-import { getTodayJdate } from '../code/JCal/jDateUtils';
+import { getTodayJdate } from '../code/JCal/JDateUtils';
 import Utils from '../code/JCal/Utils';
 import styles from '../scss/DayView.scss';
 

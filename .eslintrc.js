@@ -7,6 +7,7 @@ module.exports = {
     'one-var': 'off',
     'no-plusplus': 'off',
     'no-throw-literal': 'off',
+    'import/no-cycle': 'off',
     'react-hooks/rules-of-hooks': 'error', // Checks rules of Hooks
     'react-hooks/exhaustive-deps': 'warn' // Checks effect dependencies
   },

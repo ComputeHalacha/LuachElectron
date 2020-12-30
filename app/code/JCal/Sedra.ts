@@ -1,10 +1,10 @@
-import jDate from './jDate';
+import JDate from './JDate';
 
 /** **************************************************************************************************************
  * Computes the Sedra/Sedras of the week for the given day.
  * Returns an array of sedras (either one or two) for the given Jewish Date
  * Sample of use to get todays sedra in Israel:
- *     const sedras = new Sedra(new jDate(new Date(), true));
+ *     const sedras = new Sedra(new JDate(new Date(), true));
  *     const str = sedras.map(function (s) { return s.eng; }).join(' - ');
  * The code was converted to javascript/typescript and tweaked by CBS.
  * It is directly based on the C code in Danny Sadinoff's HebCal - Copyright (C) 1994.
@@ -12,7 +12,7 @@ import jDate from './jDate';
  * Many of the algorithms were taken from hebrew calendar routines implemented by Nachum Dershowitz
  * ************************************************************************************************************** */
 export default function Sedra(
-  jd: jDate,
+  jd: JDate,
   israel: boolean
 ): Array<{ eng: string; heb: string }> {
   // If we are between the first day of Sukkos and Simchas Torah, the sedra will always be Vezos Habracha.
@@ -948,9 +948,9 @@ Sedra.getSedraOrder = (year: number, israel: boolean) => {
     return Sedra.lastCalculatedYear;
   }
 
-  const longCheshvon = jDate.isLongCheshvan(year);
-  const shortKislev = jDate.isShortKislev(year);
-  const roshHashana = jDate.absJd(year, 7, 1);
+  const longCheshvon = JDate.isLongCheshvan(year);
+  const shortKislev = JDate.isShortKislev(year);
+  const roshHashana = JDate.absJd(year, 7, 1);
   const roshHashanaDOW = Math.abs(roshHashana % 7);
   const firstSatInYear = Sedra.getDayOnOrBefore(6, roshHashana + 6);
   let yearType;
@@ -960,7 +960,7 @@ Sedra.getSedraOrder = (year: number, israel: boolean) => {
   else if (!longCheshvon && shortKislev) yearType = 'incomplete';
   else yearType = 'regular';
 
-  if (!jDate.isJdLeapY(year)) {
+  if (!JDate.isJdLeapY(year)) {
     switch (roshHashanaDOW) {
       case 6:
         if (yearType === 'incomplete') {

@@ -1,4 +1,4 @@
-import jDate from './jDate';
+import JDate from './JDate';
 
 export default class Utils {
   static jMonthsEng = [
@@ -493,11 +493,11 @@ export default class Utils {
   }
 
   /**
-   * Compares two jDates to se if they both refer to the same day - time is ignored.
-   * @param {jDate} jdate1
-   * @param {jDate} jdate2
+   * Compares two JDates to se if they both refer to the same day - time is ignored.
+   * @param {JDate} jdate1
+   * @param {JDate} jdate2
    */
-  static isSameJdate(jdate1: jDate, jdate2: jDate): boolean {
+  static isSameJdate(jdate1: JDate, jdate2: JDate): boolean {
     return (
       !!jdate1 &&
       !!jdate2 &&
@@ -508,11 +508,11 @@ export default class Utils {
   }
 
   /**
-   * Compares two jDates to see if they both refer to the same Jewish Month.
-   * @param {jDate} jdate1
-   * @param {jDate} jdate2
+   * Compares two JDates to see if they both refer to the same Jewish Month.
+   * @param {JDate} jdate1
+   * @param {JDate} jdate2
    */
-  static isSameJMonth(jdate1: jDate, jdate2: jDate) {
+  static isSameJMonth(jdate1: JDate, jdate2: JDate) {
     return jdate1.Month === jdate2.Month && jdate1.Year === jdate2.Year;
   }
 

@@ -3,7 +3,7 @@ import Entry from './Entry';
 import { Kavuah, KavuahTypes } from './Kavuah';
 import ProblemOnah from './ProblemOnah';
 import ProblemFlag from './ProblemFlag';
-import jDate from '../JCal/jDate';
+import JDate from '../JCal/JDate';
 import Settings from '../Settings';
 
 /**
@@ -11,12 +11,12 @@ import Settings from '../Settings';
  * of the given Kavuah.
  * This is used to determine if a Problem Onah is after the setting entry of
  * a cancelling Kavuah in order to prevent its flagging.
- * @param {jDate} date
+ * @param {JDate} date
  * @param {NightDay} nightDay
  * @param {Kavuah} cancelKavuah
  */
 function isAfterKavuahStart(
-  date: jDate,
+  date: JDate,
   nightDay: NightDay,
   cancelKavuah: Kavuah
 ): boolean {
@@ -44,11 +44,11 @@ export default class FlaggedDatesGenerator {
 
   settings: Settings;
 
-  cancelKavuah: boolean;
+  cancelKavuah?: Kavuah;
 
   probOnahs: Array<ProblemOnah>;
 
-  stopWarningDate: jDate;
+  stopWarningDate: JDate;
 
   constructor(
     entries: Array<Entry>,
@@ -59,11 +59,11 @@ export default class FlaggedDatesGenerator {
     this.settings = settings;
     this.kavuahs =
       (kavuahs && kavuahs.filter(k => k.active && !k.ignore)) || [];
-    this.cancelKavuah = !!kavuahs.find(k => k.active && k.cancelsOnahBeinunis);
+    this.cancelKavuah = kavuahs.find(k => k.active && k.cancelsOnahBeinunis);
     this.probOnahs = [];
-    this.stopWarningDate = jDate
-      .toJDate()
-      .addMonths(this.settings.numberMonthsAheadToWarn);
+    this.stopWarningDate = JDate.toJDate().addMonths(
+      this.settings.numberMonthsAheadToWarn
+    );
   }
 
   /**
@@ -92,7 +92,7 @@ export default class FlaggedDatesGenerator {
     return ProblemOnah.sortProbList(this.probOnahs);
   }
 
-  findOnahBeinunisProblemOnahs(entry: Entry, cancelKavuah: Kavuah) {
+  findOnahBeinunisProblemOnahs(entry: Entry, cancelKavuah?: Kavuah) {
     // Yom Hachodesh ***************************************************************
     const nextMonth = entry.date.addMonths(1);
     // If Yom Hachodesh was 30 and this month only has 29 days,
@@ -100,7 +100,10 @@ export default class FlaggedDatesGenerator {
     // In the above scenario, jdate.addMonths will automatically change the Day to 29.
     const hasFullMonthIssue = entry.date.Day === 30 && nextMonth.Day === 29;
 
-    if (!isAfterKavuahStart(nextMonth, entry.nightDay, cancelKavuah)) {
+    if (
+      !cancelKavuah ||
+      !isAfterKavuahStart(nextMonth, entry.nightDay, cancelKavuah)
+    ) {
       const yomHachodesh = new ProblemFlag(
         nextMonth,
         entry.nightDay,
@@ -120,28 +123,34 @@ export default class FlaggedDatesGenerator {
     // If Yom Hachodesh was 30 and this month only has 29 days, we add the 1st of the next month.
     if (hasFullMonthIssue) {
       const nextDay = nextMonth.addDays(1);
-      if (!isAfterKavuahStart(nextDay, entry.nightDay, cancelKavuah)) {
-        const yomHachodesh_2 = new ProblemFlag(
+      if (
+        !cancelKavuah ||
+        !isAfterKavuahStart(nextDay, entry.nightDay, cancelKavuah)
+      ) {
+        const yomHachodesh2 = new ProblemFlag(
           nextDay,
           entry.nightDay,
           'Yom Hachodesh (changed from 30 to 1)'
         );
-        this.addProblem(yomHachodesh_2);
-        this.add24HourOnah(yomHachodesh_2);
+        this.addProblem(yomHachodesh2);
+        this.add24HourOnah(yomHachodesh2);
         // We won't flag the Ohr Zarua if it's included in Onah Beinonis
         // of 24 hours as Onah Beinonis is stricter.
         if (
           !this.settings.onahBeinunis24Hours ||
           entry.nightDay === NightDay.Night
         ) {
-          this.addOhrZarua(yomHachodesh_2);
+          this.addOhrZarua(yomHachodesh2);
         }
       }
     }
     // Day Thirty ***************************************************************
     // we only need to add 29 days as the entry date is day one
     const dayThirty = entry.date.addDays(29);
-    if (!isAfterKavuahStart(dayThirty, entry.nightDay, cancelKavuah)) {
+    if (
+      !cancelKavuah ||
+      !isAfterKavuahStart(dayThirty, entry.nightDay, cancelKavuah)
+    ) {
       const thirty = new ProblemFlag(
         dayThirty,
         entry.nightDay,
@@ -161,7 +170,10 @@ export default class FlaggedDatesGenerator {
     // Day Thirty One ***************************************************************
     if (this.settings.keepThirtyOne) {
       const dayThirtyOne = dayThirty.addDays(1);
-      if (!isAfterKavuahStart(dayThirtyOne, entry.nightDay, cancelKavuah)) {
+      if (
+        !cancelKavuah ||
+        !isAfterKavuahStart(dayThirtyOne, entry.nightDay, cancelKavuah)
+      ) {
         const thirtyOne = new ProblemFlag(
           dayThirtyOne,
           entry.nightDay,
@@ -183,7 +195,8 @@ export default class FlaggedDatesGenerator {
     const haflagaDate = entry.date.addDays(entry.haflaga - 1);
     if (
       entry.haflaga > 0 &&
-      !isAfterKavuahStart(haflagaDate, entry.nightDay, cancelKavuah)
+      (!cancelKavuah ||
+        !isAfterKavuahStart(haflagaDate, entry.nightDay, cancelKavuah))
     ) {
       const haflaga = new ProblemFlag(
         haflagaDate,
@@ -203,6 +216,7 @@ export default class FlaggedDatesGenerator {
         const diffOnahs = prevEntry.getOnahDifferential(entry);
         const nextOnah = entry.onah.addOnahs(diffOnahs);
         if (
+          !cancelKavuah ||
           !isAfterKavuahStart(nextOnah.jdate, nextOnah.nightDay, cancelKavuah)
         ) {
           const haflagaOnahs = new ProblemFlag(
@@ -219,39 +233,45 @@ export default class FlaggedDatesGenerator {
     if (this.settings.keepLongerHaflagah) {
       const probs: Array<ProblemFlag> = [];
       // Go through all earlier entries in the list that have a longer haflaga than this one
-      // and that are not kept anyway due to onah beinois,
-      for (const e of this.entries.filter(
-        en =>
-          en.date.Abs < entry.date.Abs &&
-          en.haflaga > entry.haflaga &&
-          en.haflaga !== 30 &&
-          (en.haflaga !== 31 || !this.settings.keepThirtyOne)
-      )) {
-        // See if their haflaga was never surpassed by an Entry after them
-        if (
-          !this.entries.some(
-            oe => oe.date.Abs > e.date.Abs && oe.haflaga > e.haflaga
-          )
-        ) {
-          const haflagaDate = entry.date.addDays(e.haflaga - 1);
-          if (!isAfterKavuahStart(haflagaDate, entry.nightDay, cancelKavuah)) {
-            const nonOverrided = new ProblemFlag(
-              haflagaDate,
-              entry.nightDay,
-              `Yom Haflaga (${e.haflaga.toString()} days) which was never overrided`
-            );
-            // As there can be more than single longer haflaga'd Entry with the same haflaga,
-            // we want to prevent doubles.
-            if (!probs.some(p => p.isSameProb(nonOverrided))) {
-              probs.push(nonOverrided);
+      // and that are not kept anyway due to onah beinonis,
+      this.entries
+        .filter(
+          en =>
+            en.date.Abs < entry.date.Abs &&
+            en.haflaga > entry.haflaga &&
+            en.haflaga !== 30 &&
+            (en.haflaga !== 31 || !this.settings.keepThirtyOne)
+        )
+        .forEach(e => {
+          // See if their haflaga was never surpassed by an Entry after them
+          if (
+            !this.entries.some(
+              oe => oe.date.Abs > e.date.Abs && oe.haflaga > e.haflaga
+            )
+          ) {
+            const dateHaflaga = entry.date.addDays(e.haflaga - 1);
+            if (
+              !cancelKavuah ||
+              !isAfterKavuahStart(dateHaflaga, entry.nightDay, cancelKavuah)
+            ) {
+              const nonOverrided = new ProblemFlag(
+                dateHaflaga,
+                entry.nightDay,
+                `Yom Haflaga (${e.haflaga.toString()} days) which was never overrided`
+              );
+              // As there can be more than single longer haflaga'd Entry with the same haflaga,
+              // we want to prevent doubles.
+              if (!probs.some(p => p.isSameProb(nonOverrided))) {
+                probs.push(nonOverrided);
+              }
             }
           }
-        }
-      }
-      for (const prob of probs) {
+        });
+
+      probs.forEach(prob => {
         this.addProblem(prob);
         this.addOhrZarua(prob);
-      }
+      });
     }
   }
 
@@ -276,55 +296,57 @@ export default class FlaggedDatesGenerator {
 
     // Kavuah of Dilug Haflaga.
     // They are cheshboned from actual entries - not theoretical ones
-    for (const kavuah of this.kavuahs.filter(
-      k => k.kavuahType === KavuahTypes.DilugHaflaga && k.active
-    )) {
-      if (entry.haflaga > 0 && entry.haflaga + kavuah.specialNumber !== 0) {
-        const haflagaDate = entry.date.addDays(
-          entry.haflaga + kavuah.specialNumber - 1
-        );
-        const kavuahDilugHaflaga = new ProblemFlag(
-          haflagaDate,
-          kavuah.settingEntry.nightDay,
+    this.kavuahs
+      .filter(k => k.kavuahType === KavuahTypes.DilugHaflaga && k.active)
+      .forEach(kavuah => {
+        if (entry.haflaga > 0 && entry.haflaga + kavuah.specialNumber !== 0) {
+          const haflagaDate = entry.date.addDays(
+            entry.haflaga + kavuah.specialNumber - 1
+          );
+          const kavuahDilugHaflaga = new ProblemFlag(
+            haflagaDate,
+            kavuah.settingEntry.nightDay,
+            `Kavuah of ${kavuah.toString()}`
+          );
+          this.addProblem(kavuahDilugHaflaga);
+          this.addOhrZarua(kavuahDilugHaflaga);
+        }
+      });
+    // Flagged Dates generated by Kavuahs of Haflagah by Onahs - the Shulchan Aruch Harav
+    this.kavuahs
+      .filter(k => k.kavuahType === KavuahTypes.HaflagaOnahs)
+      .forEach(kavuah => {
+        const haflagaOnah = entry.onah.addOnahs(kavuah.specialNumber);
+        const kavuahHafOnahs = new ProblemFlag(
+          haflagaOnah.jdate,
+          haflagaOnah.nightDay,
           `Kavuah of ${kavuah.toString()}`
         );
-        this.addProblem(kavuahDilugHaflaga);
-        this.addOhrZarua(kavuahDilugHaflaga);
-      }
-    }
-    // Flagged Dates generated by Kavuahs of Haflagah by Onahs - the Shulchan Aruch Harav
-    for (const kavuah of this.kavuahs.filter(
-      k => k.kavuahType === KavuahTypes.HaflagaOnahs
-    )) {
-      const haflagaOnah = entry.onah.addOnahs(kavuah.specialNumber);
-      const kavuahHafOnahs = new ProblemFlag(
-        haflagaOnah.jdate,
-        haflagaOnah.nightDay,
-        `Kavuah of ${kavuah.toString()}`
-      );
-      this.addProblem(kavuahHafOnahs);
-      this.addOhrZarua(kavuahHafOnahs);
-    }
+        this.addProblem(kavuahHafOnahs);
+        this.addOhrZarua(kavuahHafOnahs);
+      });
   }
 
   findIndependentKavuahProblemOnahs() {
     // "Independent" Kavuahs which are cheshboned from the theoretical Entries
-    for (const kavuah of this.kavuahs.filter(k => k.isIndependent)) {
-      const iters = Kavuah.getIndependentIterations(
-        kavuah,
-        this.stopWarningDate,
-        this.settings.dilugChodeshPastEnds
-      );
-      for (const onah of iters) {
-        const problemFlag = new ProblemFlag(
-          onah.jdate,
-          onah.nightDay,
-          `Kavuah for ${kavuah.toString()}`
+    this.kavuahs
+      .filter(k => k.isIndependent)
+      .forEach(kavuah => {
+        const iters = Kavuah.getIndependentIterations(
+          kavuah,
+          this.stopWarningDate,
+          this.settings.dilugChodeshPastEnds
         );
-        this.addProblem(problemFlag);
-        this.addOhrZarua(problemFlag);
-      }
-    }
+        iters.forEach(onah => {
+          const problemFlag = new ProblemFlag(
+            onah.jdate,
+            onah.nightDay,
+            `Kavuah for ${kavuah.toString()}`
+          );
+          this.addProblem(problemFlag);
+          this.addOhrZarua(problemFlag);
+        });
+      });
   }
 
   add24HourOnah(prob: ProblemFlag, entry?: Entry) {
@@ -368,7 +390,7 @@ export default class FlaggedDatesGenerator {
         probOnah = new ProblemOnah(probFlag.jdate, probFlag.nightDay);
         this.probOnahs.push(probOnah);
       }
-      probOnah.flagsList.push(probFlag.description);
+      probOnah.flagsList.push(probFlag);
     }
   }
 
