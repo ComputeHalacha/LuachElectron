@@ -1,4 +1,6 @@
+import AppData from '../Data/AppData';
 import jDate from './jDate';
+import Location from './Location';
 import Utils from './Utils';
 import Zmanim from './Zmanim';
 
@@ -7,7 +9,7 @@ import Zmanim from './Zmanim';
  * @param {Date} sdate
  * @param {Location} location
  */
-export function isAfterSunset(sdate, location) {
+export function isAfterSunset(sdate: Date, location: Location) {
   const sunriseSunset = Zmanim.getSunTimes(sdate, location);
   const nowMinutes = sdate.getHours() * 60 + sdate.getMinutes();
   const shkiaMinutes = Utils.totalMinutes(sunriseSunset.sunset);
@@ -18,7 +20,7 @@ export function isAfterSunset(sdate, location) {
  * Gets the current Jewish Date at the given Location
  * @param {Location} location
  */
-export function nowAtLocation(location) {
+export function nowAtLocation(location: Location) {
   const sdate = new Date();
   // if isAfterSunset a day is added.
   if (isAfterSunset(sdate, location)) {
@@ -31,7 +33,7 @@ export function nowAtLocation(location) {
  * Gets the proper Jewish Date at the current time at the current location
  * @param {AppData} appData
  */
-export function getTodayJdate(appData) {
+export function getTodayJdate(appData: AppData) {
   if (appData && appData.Settings && !appData.Settings.navigateBySecularDate) {
     return nowAtLocation(appData.Settings.location);
   }
@@ -42,7 +44,7 @@ export function getTodayJdate(appData) {
  * Return true if given date is either Yom Kippur or Tish'a Be'av
  * @param {Jdate} jdate
  */
-export function isYomKippurOrTishBav(jdate) {
+export function isYomKippurOrTishaBav(jdate: jDate) {
   if (jdate.Month === 7 && jdate.Day === 10) {
     return true;
   }
@@ -58,7 +60,7 @@ export function isYomKippurOrTishBav(jdate) {
  * Return true if given date is either Erev Yom Kippur or Erev Tish'a Be'av
  * @param {Jdate} jdate
  */
-export function isErevYomKippurOrTishBav(jdate) {
+export function isErevYomKippurOrTishaBav(jdate: jDate) {
   if (jdate.Month === 7 && jdate.Day === 9) {
     return true;
   }

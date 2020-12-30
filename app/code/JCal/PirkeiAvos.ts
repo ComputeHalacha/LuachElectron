@@ -9,7 +9,7 @@ import Utils from './Utils';
  *     const str = 'Pirkei Avos: ' + prakim.map(s => `${Utils.toSuffixed(s)} Perek`).join(' and ');
  * ************************************************************************************************************** */
 export default class PirkeiAvos {
-  static getPrakim(jd, israel) {
+  static getPrakim(jd: jDate, israel: boolean) {
     if (jd.getDayOfWeek() !== 6) {
       return [];
     }
@@ -40,7 +40,7 @@ export default class PirkeiAvos {
     return [];
   }
 
-  static get1stPerek = (jd, israel) => {
+  static get1stPerek = (jd: jDate, israel: boolean) => {
     const jYear = jd.Year,
       jMonth = jd.Month,
       jDay = jd.Day,
@@ -74,7 +74,7 @@ export default class PirkeiAvos {
     return prk;
   };
 
-  static ellul = (jd, israel) => {
+  static ellul = (jd:jDate, israel:boolean) => {
     let prakim;
     const jYear = jd.Year,
       jDay = jd.Day,

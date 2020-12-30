@@ -1,6 +1,6 @@
 import Utils from './Utils';
 import jDate from './jDate';
-
+import Location from './Location';
 /* Returns the molad for the given jewish month and year.
  * Algorithm was adapted from Hebcal by Danny Sadinoff
  *
@@ -8,7 +8,7 @@ import jDate from './jDate';
  * const moladString = Molad.getString(5776, 10);
  */
 export default class Molad {
-  static getMolad(month, year) {
+  static getMolad(month: number, year: number) {
     let totalMonths;
     let partsElapsed;
     let hoursElapsed;
@@ -48,7 +48,7 @@ export default class Molad {
   // Returns the time of the molad as a string in the format: Monday Night, 8:33 PM and 12 Chalakim
   // The molad is always in Jerusalem so we use the Jerusalem sunset times
   // to determine whether to display "Night" or "Motzai Shabbos" etc. (check this...)
-  static getString(year, month) {
+  static getString(year: number, month: number) {
     const molad = Molad.getMolad(month, year);
     const nightfall = molad.jDate.getSunriseSunset(Location.getJerusalem())
       .sunset;
@@ -76,7 +76,7 @@ export default class Molad {
   // Returns the time of the molad as a string in the format: ליל שני 20:33 12 חלקים
   // The molad is always in Jerusalem so we use the Jerusalem sunset times
   // to determine whether to display "ליל/יום" or "מוצאי שב"ק" etc.
-  static getStringHeb(year, month) {
+  static getStringHeb(year: number, month: number) {
     const molad = Molad.getMolad(month, year);
     const nightfall = molad.jDate.getSunriseSunset(Location.getJerusalem())
       .sunset;

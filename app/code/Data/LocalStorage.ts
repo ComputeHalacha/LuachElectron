@@ -11,18 +11,28 @@ const AllKeys = [
   'DATABASE_PATH'
 ];
 
-export const KeyNames = Object.freeze({
-  REQUIRE_PIN: 'REQUIRE_PIN',
-  PIN: 'PIN',
-  REMOTE_USERNAME: 'REMOTE_USERNAME',
-  REMOTE_PASSWORD: 'REMOTE_PASSWORD',
-  DATABASE_PATH: 'DATABASE_PATH'
-});
+export enum KeyNames {
+  REQUIRE_PIN = 'REQUIRE_PIN',
+  PIN = 'PIN',
+  REMOTE_USERNAME = 'REMOTE_USERNAME',
+  REMOTE_PASSWORD = 'REMOTE_PASSWORD',
+  DATABASE_PATH = 'DATABASE_PATH'
+}
 
 /**
  * @type {{requirePin:boolean, PIN:String, remoteUserName:String, remotePassword:String, databasePath:String }}
  */
 export default class LocalStorage {
+  requirePin: boolean;
+
+  PIN: string | null;
+
+  remoteUserName: string | null;
+
+  remotePassword: string | null;
+
+  databasePath: string;
+
   constructor() {
     this.requirePin = false;
     this.PIN = null;
@@ -41,27 +51,27 @@ export default class LocalStorage {
     return ls;
   }
 
-  setRequirePin(val) {
+  setRequirePin(val: boolean) {
     LocalStorage.setLocalStorageValue('REQUIRE_PIN', !!val);
     this.requirePin = val;
   }
 
-  setPIN(val) {
+  setPIN(val: string) {
     LocalStorage.setLocalStorageValue('PIN', val);
     this.PIN = val;
   }
 
-  setRemoteUserName(val) {
+  setRemoteUserName(val: string) {
     LocalStorage.setLocalStorageValue('REMOTE_USERNAME', val);
     this.remoteUserName = val;
   }
 
-  setRemotePassword(val) {
+  setRemotePassword(val: string) {
     LocalStorage.setLocalStorageValue('REMOTE_PASSWORD', val || '');
     this.remotePassword = val;
   }
 
-  setDatabasePath(val) {
+  setDatabasePath(val: string) {
     LocalStorage.setLocalStorageValue('DATABASE_PATH', val || '');
     this.databasePath = val;
   }
@@ -93,7 +103,7 @@ export default class LocalStorage {
   /**
    * Loads the current objects properties from localStorage
    */
-  static async loadAll() {
+  static async loadAll(): Promise<LocalStorage> {
     return new Promise((resolve, reject) => {
       try {
         const ls = new LocalStorage();
@@ -102,7 +112,7 @@ export default class LocalStorage {
           if (value !== null) {
             switch (key) {
               case 'REQUIRE_PIN':
-                ls.requirePin = value && Boolean(JSON.parse(value));
+                ls.requirePin = !!value && Boolean(JSON.parse(value));
                 break;
               case 'PIN':
                 ls.PIN = JSON.parse(value);
@@ -128,7 +138,10 @@ export default class LocalStorage {
     });
   }
 
-  static setLocalStorageValue(name, value) {
+  static setLocalStorageValue(
+    name: string,
+    value: string | boolean | null | undefined
+  ) {
     try {
       if (value !== null && typeof value !== 'undefined') {
         localStorage.setItem(name, JSON.stringify(value));
@@ -147,16 +160,16 @@ export default class LocalStorage {
     return localStorage.getItem(AllKeys[0]) !== null;
   }
 
-  static wasDatabasepathInitialized() {
+  static wasDatabasePathInitialized() {
     return !!localStorage.getItem('DATABASE_PATH');
   }
 
-  static initialize(requirePin, PIN) {
+  static initialize(requirePin: boolean, PIN: string) {
     if (!this.wasInitialized()) {
       LocalStorage.setLocalStorageValue('REQUIRE_PIN', !!requirePin);
       LocalStorage.setLocalStorageValue('PIN', PIN);
     }
-    if (!this.wasDatabasepathInitialized()) {
+    if (!this.wasDatabasePathInitialized()) {
       // This is the inbuilt original database
       LocalStorage.setLocalStorageValue(
         'DATABASE_PATH',

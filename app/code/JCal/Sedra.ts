@@ -6,7 +6,7 @@ import jDate from './jDate';
  * Sample of use to get todays sedra in Israel:
  *     const sedras = new Sedra(new jDate(new Date(), true));
  *     const str = sedras.map(function (s) { return s.eng; }).join(' - ');
- * The code was converted to javascript and tweaked by CBS.
+ * The code was converted to javascript/typescript and tweaked by CBS.
  * It is directly based on the C code in Danny Sadinoff's HebCal - Copyright (C) 1994.
  * Portions of that code are Copyright (c) 2002 Michael J. Radwin. All Rights Reserved.
  * Many of the algorithms were taken from hebrew calendar routines implemented by Nachum Dershowitz
@@ -25,7 +25,7 @@ export default function Sedra(
   let absDate = jd.Abs;
   let index;
 
-  /* find the first saturday on or after today's date */
+  /* find the first shabbos on or after today's date */
   absDate = Sedra.getDayOnOrBefore(6, absDate + 6);
 
   const weekNum = (absDate - sedraOrder.firstSatInYear) / 7;
@@ -33,7 +33,7 @@ export default function Sedra(
   if (weekNum >= sedraOrder.sedraArray.length) {
     const indexLast = sedraOrder.sedraArray[sedraOrder.sedraArray.length - 1];
     if (indexLast < 0) {
-      /* advance 2 parashiyot ahead after a doubled week */
+      /* advance 2 parshas ahead after a doubled week */
       index = -indexLast + 2;
     } else {
       index = indexLast + 1;
@@ -45,7 +45,7 @@ export default function Sedra(
   if (index >= 0) {
     sedraArray = [Sedra.sedraList[index]];
   } else {
-    const i = -index; /* undouble the sedra */
+    const i = -index; /* un-double the sedra */
     sedraArray = [Sedra.sedraList[i], Sedra.sedraList[i + 1]];
   }
   return sedraArray;

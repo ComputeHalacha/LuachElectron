@@ -1,12 +1,24 @@
-const TaharaEventType = Object.freeze({
-  Hefsek: 1,
-  Bedika: 2,
-  Shailah: 4,
-  Mikvah: 8
-});
+import jDate from '../JCal/jDate';
+
+enum TaharaEventType {
+  Hefsek = 1,
+  Bedika = 2,
+  Shailah = 4,
+  Mikvah = 8
+}
 
 class TaharaEvent {
-  constructor(jdate, taharaEventType, taharaEventId) {
+  jdate: jDate;
+
+  taharaEventType: TaharaEventType;
+
+  taharaEventId: number;
+
+  constructor(
+    jdate: jDate,
+    taharaEventType: TaharaEventType,
+    taharaEventId: number
+  ) {
     this.jdate = jdate;
     this.taharaEventType = taharaEventType;
     this.taharaEventId = taharaEventId;
@@ -27,7 +39,7 @@ class TaharaEvent {
    * Sorts a list of TaharaEvents chronologically
    * @param {[TaharaEvent]} taharaEventsList
    */
-  static sortList(taharaEventsList) {
+  static sortList(taharaEventsList: Array<TaharaEvent>) {
     return taharaEventsList.sort((a, b) => a.jdate.Abs - b.jdate.Abs);
   }
 
@@ -35,7 +47,7 @@ class TaharaEvent {
    * Gets the string representation of a TaharaEventType
    * @param {TaharaEventType} taharaEventType
    */
-  static toTaharaEventTypeString(taharaEventType) {
+  static toTaharaEventTypeString(taharaEventType: TaharaEventType) {
     switch (taharaEventType) {
       case TaharaEventType.Hefsek:
         return 'Hefsek Tahara';
@@ -45,6 +57,8 @@ class TaharaEvent {
         return 'Shailah';
       case TaharaEventType.Mikvah:
         return 'Mikvah';
+      default:
+        return null;
     }
   }
 }

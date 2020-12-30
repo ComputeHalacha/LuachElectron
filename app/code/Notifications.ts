@@ -1,55 +1,15 @@
 import Utils from './JCal/Utils';
 import { nowAtLocation } from './JCal/jDateUtils';
 import { NightDay } from './Chashavshavon/Onah';
-import { getGlobals, log, range } from './GeneralUtils';
+import { log, range } from './GeneralUtils';
 
-const NotificationEventType = Object.freeze({
-  Hefsek: 101,
-  MorningBedika: 102,
-  AfternoonBedika: 103,
-  Mikvah: 104,
-  FlaggedDayOnah: 105,
-  FlaggedNightOnah: 106
-});
-
-export function configureNotifier(onRegister, onNotification) {
-  log('PushNotification.configure is being called.');
-
-  PushNotification.configure({
-    // (optional) Called when Token is generated (iOS and Android)
-    onRegister(token) {
-      log('PushNotification.onRegister called: TOKEN: ', token);
-      if (onRegister) {
-        onRegister(token);
-      }
-    },
-
-    // (required) Called when a remote or local notification is opened or received
-    async onNotification(notification) {
-      log(
-        `PushNotification.OnNotification being called: NOTIFICATION: ${JSON.stringify(
-          notification
-        )}`
-      );
-      if (onNotification) {
-        onNotification(notification);
-      }
-      if (
-        getGlobals().IS_MAC &&
-        PushNotification.FetchResult &&
-        PushNotification.FetchResult
-      ) {
-        notification.finish(PushNotification.FetchResult.NoData);
-      }
-    },
-    permissions: {
-      alert: true,
-      badge: true,
-      sound: true
-    },
-    popInitialNotification: true,
-    requestPermissions: true
-  });
+enum NotificationEventType {
+  Hefsek = 101,
+  MorningBedika = 102,
+  AfternoonBedika = 103,
+  Mikvah = 104,
+  FlaggedDayOnah = 105,
+  FlaggedNightOnah = 106
 }
 
 /**

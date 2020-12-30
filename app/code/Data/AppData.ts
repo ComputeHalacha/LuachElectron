@@ -12,14 +12,21 @@ import {
   removeAllDayOnahReminders,
   removeAllNightOnahReminders
 } from '../Notifications';
-import { error, warn, isNullishOrFalse } from '../GeneralUtils';
+import { isNullishOrFalse } from '../GeneralUtils';
 
 /**
  * List of fields that have been added after the initial app launch.
  * Any that do not yet exist, will be added to the db schema during initial loading.
  * Optionally sets an async callback to run after the field has been added.
  */
-const addedFields: string[] = [];
+const addedFields: Array<{
+  table: string;
+  name: string;
+  type: string;
+  allowNull?: boolean;
+  defaultValue?: string | number | boolean | null;
+  afterAddCallback?: Function;
+}> = [];
 
 /**
  * An single object that contains all the application data.
@@ -131,7 +138,7 @@ export default class AppData {
    */
   static async upgradeDatabase() {
     // First get a list of tables that may need updating.
-    const tablesToChange: [] = [];
+    const tablesToChange: Array<string> = [];
     addedFields.forEach(af => {
       if (!tablesToChange.includes(af.table)) {
         tablesToChange.push(af.table);
@@ -162,29 +169,17 @@ export default class AppData {
     // Before getting data from database, make sure that the local database schema is up to date.
     // await AppData.upgradeDatabase();
 
-    const settings = await DataUtils.SettingsFromDatabase().catch(err => {
-      warn('Error running SettingsFromDatabase.');
-      error(err);
-    });
-    const occasions = await DataUtils.GetAllUserOccasions().catch(err => {
-      warn('Error running GetAllUserOccasions.');
-      error(err);
-    });
-    const entryList = await DataUtils.EntryListFromDatabase().catch(err => {
-      warn('Error running EntryListFromDatabase.');
-      error(err);
-    });
-    const kavuahList = await DataUtils.GetAllKavuahs(entryList).catch(err => {
-      warn('Error running GetAllKavuahs.');
-      error(err);
-    });
-    const taharaEvents = await DataUtils.GetAllTaharaEvents().catch(err => {
-      warn('Error running GetAllTaharaEvents.');
-      error(err);
-    });
+    const settings = await DataUtils.SettingsFromDatabase();
+    const occasions = await DataUtils.GetAllUserOccasions();
+    const entryList = await DataUtils.EntryListFromDatabase();
+    const kavuahList = await DataUtils.GetAllKavuahs(entryList);
+    const taharaEvents = await DataUtils.GetAllTaharaEvents();
 
     // After getting all the data, the problem onahs are set.
-    const problemOnahs = entryList.getProblemOnahs(kavuahList, settings);
+    const problemOnahs = (entryList as EntryList).getProblemOnahs(
+      kavuahList,
+      settings
+    );
 
     return new AppData(
       settings,

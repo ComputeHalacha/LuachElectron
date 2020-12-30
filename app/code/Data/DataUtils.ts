@@ -1,10 +1,9 @@
-import sqlite3 from 'sqlite3';
+import sqlite3, { Database } from 'sqlite3';
 import { open } from 'sqlite';
 import fs from 'fs';
 import {
   getGlobals,
   isDev,
-  isNumber,
   log,
   error,
   warn,
@@ -14,12 +13,12 @@ import AppData from './AppData';
 import jDate from '../JCal/jDate';
 import Settings from '../Settings';
 import Location from '../JCal/Location';
-import { UserOccasion } from '../JCal/UserOccasion';
+import { UserOccasion, UserOccasionTypes } from '../JCal/UserOccasion';
 import Entry from '../Chashavshavon/Entry';
 import EntryList from '../Chashavshavon/EntryList';
 import { NightDay, Onah } from '../Chashavshavon/Onah';
-import { Kavuah } from '../Chashavshavon/Kavuah';
-import { TaharaEvent } from '../Chashavshavon/TaharaEvent';
+import { Kavuah, KavuahTypes } from '../Chashavshavon/Kavuah';
+import { TaharaEvent, TaharaEventType } from '../Chashavshavon/TaharaEvent';
 import Utils from '../JCal/Utils';
 import LocalStorage from './LocalStorage';
 
@@ -30,44 +29,43 @@ if (isDev()) {
 export default class DataUtils {
   static databasePath = getGlobals().DEFAULT_DB_PATH;
 
-  static allLocations = [];
+  static allLocations: Array<Location> = [];
 
-  static async SettingsFromDatabase() {
-    let settings;
+  static async SettingsFromDatabase(): Promise<Settings> {
+    const settings = new Settings();
     try {
       const results = await DataUtils.executeSql('SELECT * from settings');
       const dbSet = results.list[0];
-      const location = await DataUtils.LocationFromDatabase(dbSet.locationId);
-      settings = new Settings({
-        location,
-        showOhrZeruah: !!dbSet.showOhrZeruah,
-        keepThirtyOne: !!dbSet.keepThirtyOne,
-        onahBeinunis24Hours: !!dbSet.onahBeinunis24Hours,
-        numberMonthsAheadToWarn: dbSet.numberMonthsAheadToWarn,
-        keepLongerHaflagah: !!dbSet.keepLongerHaflagah,
-        // In the database, the dilugChodeshPastEnds value is stored
-        // in a field misnamed "cheshbonKavuahByCheshbon".
-        // A field that was no longer in use was appropriated for this value,
-        // and we don't want to change the database schema itself
-        // so as not to overwrite existing data.
-        dilugChodeshPastEnds: !!dbSet.cheshbonKavuahByCheshbon,
-        haflagaOfOnahs: !!dbSet.haflagaOfOnahs,
-        kavuahDiffOnahs: !!dbSet.kavuahDiffOnahs,
-        calcKavuahsOnNewEntry: !!dbSet.calcKavuahsOnNewEntry,
-        showProbFlagOnHome: !!dbSet.showProbFlagOnHome,
-        showEntryFlagOnHome: !!dbSet.showEntryFlagOnHome,
-        navigateBySecularDate: !!dbSet.navigateBySecularDate,
-        showIgnoredKavuahs: !!dbSet.showIgnoredKavuahs,
-        noProbsAfterEntry: !!dbSet.noProbsAfterEntry,
-        hideHelp: !!dbSet.hideHelp,
-        discreet: !!dbSet.discreet,
-        autoBackup: !!dbSet.autoBackup,
-        remindBedkMornTime: dbSet.remindBedkMornTime,
-        remindBedkAftrnHour: dbSet.remindBedkAftrnHour,
-        remindMikvahTime: dbSet.remindMikvahTime,
-        remindDayOnahHour: dbSet.remindDayOnahHour,
-        remindNightOnahHour: dbSet.remindNightOnahHour
-      });
+      settings.location = await DataUtils.LocationFromDatabase(
+        dbSet.locationId
+      );
+      settings.showOhrZeruah = !!dbSet.showOhrZeruah;
+      settings.keepThirtyOne = !!dbSet.keepThirtyOne;
+      settings.onahBeinunis24Hours = !!dbSet.onahBeinunis24Hours;
+      settings.numberMonthsAheadToWarn = dbSet.numberMonthsAheadToWarn;
+      settings.keepLongerHaflagah = !!dbSet.keepLongerHaflagah;
+      // In the database; the dilugChodeshPastEnds value is stored
+      // in a field misnamed "cheshbonKavuahByCheshbon".
+      // A field that was no longer in use was appropriated for this value;
+      // and we don't want to change the database schema itself
+      // so as not to overwrite existing data.
+      settings.dilugChodeshPastEnds = !!dbSet.cheshbonKavuahByCheshbon;
+      settings.haflagaOfOnahs = !!dbSet.haflagaOfOnahs;
+      settings.kavuahDiffOnahs = !!dbSet.kavuahDiffOnahs;
+      settings.calcKavuahsOnNewEntry = !!dbSet.calcKavuahsOnNewEntry;
+      settings.showProbFlagOnHome = !!dbSet.showProbFlagOnHome;
+      settings.showEntryFlagOnHome = !!dbSet.showEntryFlagOnHome;
+      settings.navigateBySecularDate = !!dbSet.navigateBySecularDate;
+      settings.showIgnoredKavuahs = !!dbSet.showIgnoredKavuahs;
+      settings.noProbsAfterEntry = !!dbSet.noProbsAfterEntry;
+      settings.hideHelp = !!dbSet.hideHelp;
+      settings.discreet = !!dbSet.discreet;
+      settings.autoBackup = !!dbSet.autoBackup;
+      settings.remindBedkMornTime = dbSet.remindBedkMornTime;
+      settings.remindBedkAftrnHour = dbSet.remindBedkAftrnHour;
+      settings.remindMikvahTime = dbSet.remindMikvahTime;
+      settings.remindDayOnahHour = dbSet.remindDayOnahHour;
+      settings.remindNightOnahHour = dbSet.remindNightOnahHour;
       /** *******************************************************************************
                 If this is the first run after version 1.73 -
                 where the requirePIN and PIN were moved out from the database into local storage,
@@ -86,7 +84,7 @@ export default class DataUtils {
     return settings;
   }
 
-  static async SettingsToDatabase(settings) {
+  static async SettingsToDatabase(settings: Settings) {
     try {
       await DataUtils.executeSql(
         `UPDATE settings SET
@@ -133,9 +131,13 @@ export default class DataUtils {
           settings.hideHelp,
           settings.discreet,
           settings.autoBackup,
-          Utils.getSimpleTimeString(settings.remindBedkMornTime),
+          settings.remindBedkMornTime
+            ? Utils.getSimpleTimeString(settings.remindBedkMornTime)
+            : null,
           settings.remindBedkAftrnHour,
-          Utils.getSimpleTimeString(settings.remindMikvahTime),
+          settings.remindMikvahTime
+            ? Utils.getSimpleTimeString(settings.remindMikvahTime)
+            : null,
           settings.remindDayOnahHour,
           settings.remindNightOnahHour
         ]
@@ -146,7 +148,7 @@ export default class DataUtils {
     }
   }
 
-  static async SetCurrentLocationOnDatabase(location) {
+  static async SetCurrentLocationOnDatabase(location: Location) {
     try {
       await DataUtils.executeSql(
         `UPDATE settings SET
@@ -159,14 +161,21 @@ export default class DataUtils {
     }
   }
 
-  static async EntryListFromDatabase() {
+  static async EntryListFromDatabase(): Promise<EntryList> {
     const entryList = new EntryList();
     try {
       const results = await DataUtils.executeSql(
         'SELECT * from entries ORDER BY dateAbs, day'
       );
-      if (results.list.length > 0) {
-        entryList.forEach(e => {
+      results.list.forEach(
+        (e: {
+          dateAbs: number;
+          day: boolean;
+          entryId: number;
+          ignoreForFlaggedDates: boolean;
+          ignoreForKavuah: boolean;
+          comments: string;
+        }) => {
           const onah = new Onah(
             new jDate(e.dateAbs),
             e.day ? NightDay.Day : NightDay.Night
@@ -180,9 +189,9 @@ export default class DataUtils {
               e.comments
             )
           );
-        });
-        entryList.calculateHaflagas();
-      }
+        }
+      );
+      entryList.calculateHaflagas();
     } catch (err) {
       warn('Error trying to get all entries from the database.');
       error(err);
@@ -190,7 +199,7 @@ export default class DataUtils {
     return entryList;
   }
 
-  static async LocationFromDatabase(locationId) {
+  static async LocationFromDatabase(locationId: number) {
     let location = null;
     if (!locationId) {
       throw 'locationId parameter cannot be empty. Use GetAllLocations to retrieve all locations.';
@@ -212,7 +221,7 @@ export default class DataUtils {
    * Add a Location to the list in the database
    * @param {Location} location The location to add
    */
-  static async LocationToDatabase(location) {
+  static async LocationToDatabase(location: Location) {
     const params = [
       location.Name,
       location.Israel,
@@ -269,7 +278,7 @@ export default class DataUtils {
    * Deletes a Location from the locations table
    * @param {Location} location The location to remove from the database
    */
-  static async DeleteLocation(location) {
+  static async DeleteLocation(location: Location) {
     if (!location.hasId()) {
       throw 'Locations can only be deleted from the database if they have an id';
     }
@@ -306,12 +315,14 @@ export default class DataUtils {
    * @param {Boolean} [utcOffset] Does the results need to match the current utc offset?
    * @returns {<[Location]>}
    */
-  static async SearchLocations(searchTerm, utcOffset) {
+  static async SearchLocations(searchTerm: string, utcOffset: boolean) {
     if (!searchTerm) {
       throw 'Search parameter cannot be empty. Use GetAllLocations to retrieve all locations.';
     }
     let where = "(name || IFNULL(heb, '') LIKE ?)";
-    const values = [`%${searchTerm}%`];
+    const values: Array<number | string | boolean | Date | null> = [
+      `%${searchTerm}%`
+    ];
     if (utcOffset) {
       where += ' and utcOffset=?';
       values.push(Utils.currUtcOffset());
@@ -319,14 +330,21 @@ export default class DataUtils {
     return DataUtils.queryLocations(where, values);
   }
 
-  static async GetAllUserOccasions() {
-    let list = [];
+  static async GetAllUserOccasions(): Promise<Array<UserOccasion>> {
+    let list: Array<UserOccasion> = [];
     try {
       const results = await DataUtils.executeSql(
         'SELECT * from occasions ORDER BY dateAbs'
       );
       list = results.list.map(
-        o =>
+        (o: {
+          title: string;
+          type: UserOccasionTypes;
+          dateAbs: number;
+          color: string;
+          comments: string;
+          occasionId: number;
+        }) =>
           new UserOccasion(
             o.title,
             o.type,
@@ -343,7 +361,7 @@ export default class DataUtils {
     return list;
   }
 
-  static async UserOccasionToDatabase(occasion) {
+  static async UserOccasionToDatabase(occasion: UserOccasion) {
     const params = [
       occasion.title,
       occasion.occasionType,
@@ -394,7 +412,7 @@ export default class DataUtils {
     return occasion;
   }
 
-  static async DeleteUserOccasion(occasion) {
+  static async DeleteUserOccasion(occasion: UserOccasion) {
     if (!occasion.hasId) {
       throw 'Occasions can only be deleted from the database if they have an id';
     }
@@ -412,28 +430,36 @@ export default class DataUtils {
 
   /**
    * Gets all Kavuahs from the database.
-   * @param {Entry|[Entry]} entries An EntryList instance or an Array of entries where the settingEntry can be found
+   * @param {EntryList|[Entry]} entries An EntryList instance or an Array of entries where the settingEntry can be found
    */
-  static async GetAllKavuahs(entries) {
-    if (entries instanceof EntryList) {
-      entries = entries.list;
-    }
-    let list = [];
+  static async GetAllKavuahs(
+    entries: Array<Entry> | EntryList
+  ): Promise<Array<Kavuah>> {
+    const entryList = entries instanceof EntryList ? entries.list : entries;
+    let list: Array<Kavuah> = [];
     try {
       const results = await DataUtils.executeSql('SELECT * from kavuahs');
       list = results.list.map(
-        k =>
-          new Kavuah(
+        (k: {
+          kavuahType: KavuahTypes;
+          settingEntryId: number;
+          specialNumber: number;
+          cancelsOnahBeinunis: any;
+          active: any;
+          ignore: any;
+          kavuahId: number | undefined;
+        }) => {
+          const kav = new Kavuah(
             k.kavuahType,
-            (k.settingEntry = entries.find(
-              e => e.entryId === k.settingEntryId
-            )),
+            entryList.find(e => e.entryId === k.settingEntryId),
             k.specialNumber,
             !!k.cancelsOnahBeinunis,
             !!k.active,
             !!k.ignore,
             k.kavuahId
-          )
+          );
+          return kav;
+        }
       );
     } catch (err) {
       warn('Error trying to get all kavuahs from the database.');
@@ -445,14 +471,18 @@ export default class DataUtils {
   /**
    * Gets all TaharaEvents from the database.
    */
-  static async GetAllTaharaEvents() {
-    let list = [];
+  static async GetAllTaharaEvents(): Promise<Array<TaharaEvent>> {
+    let list: Array<TaharaEvent> = [];
     try {
       const results = await DataUtils.executeSql(
         'SELECT * from taharaEvents ORDER BY dateAbs'
       );
       list = results.list.map(
-        te =>
+        (te: {
+          dateAbs: number;
+          taharaEventType: TaharaEventType;
+          taharaEventId: number;
+        }) =>
           new TaharaEvent(
             new jDate(te.dateAbs),
             te.taharaEventType,
@@ -466,7 +496,7 @@ export default class DataUtils {
     return list;
   }
 
-  static async KavuahToDatabase(appData, kavuah) {
+  static async KavuahToDatabase(appData: AppData, kavuah: Kavuah) {
     if (!(kavuah.settingEntry && kavuah.settingEntry.hasId)) {
       throw "A kavuah can not be saved to the database unless it's setting entry is already in the database.";
     }
@@ -478,7 +508,7 @@ export default class DataUtils {
       kavuah.active,
       kavuah.ignore
     ];
-    if (kavuah.hasId) {
+    if (kavuah && kavuah.hasId) {
       try {
         await DataUtils.executeSql(
           `UPDATE kavuahs SET
@@ -521,7 +551,7 @@ export default class DataUtils {
     }
   }
 
-  static async DeleteKavuah(appData, kavuah) {
+  static async DeleteKavuah(appData: AppData, kavuah: Kavuah) {
     if (!kavuah.hasId) {
       throw 'Kavuahs can only be deleted from the database if they have an id';
     }
@@ -538,7 +568,7 @@ export default class DataUtils {
     }
   }
 
-  static async EntryToDatabase(appData, entry) {
+  static async EntryToDatabase(appData: AppData, entry: Entry) {
     if (entry.hasId) {
       try {
         await DataUtils.executeSql(
@@ -581,7 +611,7 @@ export default class DataUtils {
     }
   }
 
-  static async DeleteEntry(appData, entry) {
+  static async DeleteEntry(appData: AppData, entry: Entry) {
     if (!entry.hasId) {
       throw 'Entries can only be deleted from the database if they have an id';
     }
@@ -598,7 +628,7 @@ export default class DataUtils {
     }
   }
 
-  static async TaharaEventToDatabase(taharaEvent) {
+  static async TaharaEventToDatabase(taharaEvent: TaharaEvent) {
     if (taharaEvent.hasId) {
       try {
         await DataUtils.executeSql(
@@ -630,7 +660,7 @@ export default class DataUtils {
     }
   }
 
-  static async DeleteTaharaEvent(taharaEvent) {
+  static async DeleteTaharaEvent(taharaEvent: TaharaEvent) {
     if (!taharaEvent.hasId) {
       throw 'TaharaEvents can only be deleted from the database if they have an id';
     }
@@ -650,7 +680,7 @@ export default class DataUtils {
    * The fields returned by sqlite for this query are: cid, name, type, notnull, dflt_value, pk.
    * @param {String} tableName
    */
-  static async GetTableFields(tableName) {
+  static async GetTableFields(tableName: string) {
     let list = [];
     try {
       const results = await DataUtils.executeSql(
@@ -670,7 +700,13 @@ export default class DataUtils {
    * Add a new table field.
    * @param {{table:String, name:String, type:String, allowNull:Boolean, defaultValue:String}} newField
    */
-  static async AddTableField(newField) {
+  static async AddTableField(newField: {
+    table: string;
+    name: string;
+    type: string;
+    allowNull?: boolean;
+    defaultValue?: string | number | boolean | Date | null;
+  }) {
     await DataUtils.executeSql(
       `ALTER TABLE ${newField.table}
             ADD COLUMN ${newField.name}
@@ -698,27 +734,40 @@ export default class DataUtils {
    * @param {String} [whereClause] Optional whereClause should be a valid SQLite statement - such as "name = 'New York'" or "name = ?".
    * @param {[any]} [values] Array of values to be used for the whereClause if it contains any sqlite parameters - such as 'id=?'. For example, if the whereClause is "name=? and israel=?", then values should be: ['Natanya', true].
    */
-  static async queryLocations(whereClause, values) {
-    const list = [];
+  static async queryLocations(
+    whereClause?: string,
+    values?: Array<string | number | boolean | Date | null>
+  ): Promise<Array<Location>> {
+    const list: Array<Location> = [];
     const results = await DataUtils.executeSql(
       `SELECT * FROM locations ${
         whereClause ? ` WHERE ${whereClause}` : ''
       } ORDER BY name`,
       values
     );
-    results.list.forEach(l =>
-      list.push(
-        new Location(
-          l.name,
-          !!l.israel,
-          l.latitude,
-          l.longitude,
-          l.utcoffset,
-          l.elevation && l.elevation > 0 ? l.elevation : 0,
-          l.candles,
-          l.locationId
+    results.list.forEach(
+      (l: {
+        name: string;
+        israel: any;
+        latitude: number;
+        longitude: number;
+        utcoffset: number;
+        elevation: number;
+        candles: number | undefined;
+        locationId: number | undefined;
+      }) =>
+        list.push(
+          new Location(
+            l.name,
+            !!l.israel,
+            l.latitude,
+            l.longitude,
+            l.utcoffset,
+            l.elevation && l.elevation > 0 ? l.elevation : 0,
+            l.candles,
+            l.locationId
+          )
         )
-      )
     );
     log(
       `442 - ${list.length} Locations returned from db in DataUtils.queryLocations`
@@ -729,12 +778,15 @@ export default class DataUtils {
   /**
    * Executes sql on the database. promise resolves with an object { list: ResultsArray, id: LastInsertedRowId }
    * @param {String} sql The sql to execute. Can contain parameters - in the form of ? characters.
-   * @param {[any]} values Array of the values to be used for any sqlite parameters in the sql
+   * @param {[string | number | Date | boolean | null]} values Array of the values to be used for any sqlite parameters in the sql
    */
-  static async executeSql(sql, values) {
+  static async executeSql(
+    sql: string,
+    values?: Array<string | number | Date | boolean | null>
+  ) {
     let resultsList = [];
     let insertId;
-    let db;
+    let db: Database;
 
     DataUtils.assureDatabaseExists();
 
@@ -824,7 +876,7 @@ export default class DataUtils {
     }
   }
 
-  static async closeDatabase(db) {
+  static async closeDatabase(db: Database) {
     if (db) {
       try {
         await db.close();

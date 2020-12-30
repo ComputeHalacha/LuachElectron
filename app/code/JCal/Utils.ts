@@ -317,8 +317,14 @@ export default class Utils {
    * Returns the given time in a simple formatted string: 17:06:00
    * @param {{hour:Number, minute:Number}} hm An object in the format {hour : 23, minute :42 }
    */
-  static getSimpleTimeString(hm: { hour: number; minute: number }) {
-    if (!hm || hm.hour < 0)
+  static getSimpleTimeString(hm?: {
+    hour: number;
+    minute: number;
+  }): string | null {
+    if (!hm) {
+      return null;
+    }
+    if (hm.hour < 0)
       throw new Error(
         'Utils.getSimpleTimeString - hm is not an object of type {hour:Number, minute:Number}'
       );
@@ -491,9 +497,13 @@ export default class Utils {
    * @param {jDate} jdate1
    * @param {jDate} jdate2
    */
-  static isSameJdate(jdate1: jDate, jdate2: jDate) {
+  static isSameJdate(jdate1: jDate, jdate2: jDate): boolean {
     return (
-      jdate1 && jdate2 && jdate1.Abs && jdate2.Abs && jdate1.Abs === jdate2.Abs
+      !!jdate1 &&
+      !!jdate2 &&
+      !!jdate1.Abs &&
+      !!jdate2.Abs &&
+      jdate1.Abs === jdate2.Abs
     );
   }
 
@@ -525,7 +535,7 @@ export default class Utils {
    */
   static isSameTime(
     time1: { hour: number; minute: number } | null,
-    time2: { hour: number; minute: number }
+    time2: { hour: number; minute: number } | null
   ) {
     return (
       time1 &&

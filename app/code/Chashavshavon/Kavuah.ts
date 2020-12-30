@@ -34,7 +34,7 @@ class Kavuah {
 
   constructor(
     kavuahType: KavuahTypes,
-    settingEntry: Entry,
+    settingEntry: Entry|undefined,
     specialNumber: number,
     cancelsOnahBeinunis = true,
     active = true,

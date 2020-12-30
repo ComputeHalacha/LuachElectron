@@ -48,9 +48,7 @@ const serverURL = isDev()
   : 'https://www.compute.co.il/api/luach';
 
 export default class RemoteBackup {
-  constructor() {
-    this.localStorage = null;
-  }
+  localStorage: LocalStorage = new LocalStorage();
 
   async getLastBackupDate() {
     const response = await this.request('date');
@@ -58,6 +56,7 @@ export default class RemoteBackup {
       return response.HasBackup ? new Date(response.Date) : true;
     }
     warn(response.ErrorMessage);
+    return null;
   }
 
   async getReqHeaders() {
@@ -71,7 +70,7 @@ export default class RemoteBackup {
   /**
    * @returns {LocalStorage} a filled local storage object
    */
-  async getLocalStorage() {
+  async getLocalStorage(): Promise<LocalStorage> {
     if (!this.localStorage) {
       this.localStorage = await LocalStorage.loadAll();
     }
@@ -85,7 +84,7 @@ export default class RemoteBackup {
     ).toString('base64');
   }
 
-  async request(url, method, data) {
+  async request(url?: string, method: string = 'GET', data: object = {}) {
     let responseData;
     try {
       url = serverURL + (url ? `/${url}` : '');
@@ -231,11 +230,11 @@ export default class RemoteBackup {
         log(`Set the DataUtils database path to ${newPath}`);
         // Reset the global application data object
         appData = await AppData.fromDatabase();
-        global.GlobalAppData = appData;
+        (global as any).GlobalAppData = appData;
         // Reload the global app data from the newly overwritten database file
         log('Reloaded Global.AppData from new database');
         // Delete the old database file
-        fs.unlink(prevPath);
+        fs.unlink(prevPath, () => null);
         log(`Deleted previous file ${prevPath}`);
         success = true;
       } catch (e) {
@@ -249,9 +248,9 @@ export default class RemoteBackup {
     return { success, appData, message };
   }
 
-  static async DoBackupNoMatterWhat(localStorage) {
+  static async DoBackupNoMatterWhat(localStorage: LocalStorage) {
     const remoteBackup = new RemoteBackup();
-    if (!localStorage) localStorage = remoteBackup.getLocalStorage();
+    if (!localStorage) localStorage = await remoteBackup.getLocalStorage();
     else remoteBackup.localStorage = localStorage;
     if (!localStorage.remoteUserName || !localStorage.remotePassword) {
       return {

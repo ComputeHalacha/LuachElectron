@@ -1,17 +1,24 @@
 import { NightDay, Onah } from './Onah';
 import Utils from '../JCal/Utils';
+import ProblemFlag from './ProblemFlag';
+import jDate from '../JCal/jDate';
 
 /**
  * Represents all the problems of a single Onah.
  * The flagList contains an Array of strings, each describing one problem.
  */
 export default class ProblemOnah extends Onah {
+  flagsList: ProblemFlag[];
   /**
    * @param {jDate} jdate
    * @param {NightDay} nightDay
    * @param {[String]} flagsList
    */
-  constructor(jdate, nightDay, flagsList) {
+  constructor(
+    jdate: jDate,
+    nightDay: NightDay,
+    flagsList?: Array<ProblemFlag>
+  ) {
     if (!jdate) {
       throw 'jdate must be supplied.';
     }
@@ -43,7 +50,7 @@ export default class ProblemOnah extends Onah {
    * and has all the flags that this one does.
    * @param {ProblemOnah} prob
    */
-  isSameProb(prob) {
+  isSameProb(prob: ProblemOnah) {
     return (
       this.isSameOnah(prob) &&
       this.flagsList.every(f => prob.flagsList.some(pf => pf === f))
@@ -55,7 +62,7 @@ export default class ProblemOnah extends Onah {
    * @param {JDate} jdate
    * @param {[ProblemOnah]} probOnahList
    */
-  static getProbsForDate(jdate, probOnahList) {
+  static getProbsForDate(jdate: jDate, probOnahList: Array<ProblemOnah>) {
     return (
       probOnahList &&
       probOnahList.length > 0 &&
@@ -66,7 +73,7 @@ export default class ProblemOnah extends Onah {
   /**
    * Sort problems
    */
-  static sortProbList(probOnahs) {
+  static sortProbList(probOnahs: Array<ProblemOnah>) {
     // Sort problem onahs by chronological order, and return them
     return probOnahs.sort((a, b) => {
       if (a.jdate.Abs < b.jdate.Abs) {

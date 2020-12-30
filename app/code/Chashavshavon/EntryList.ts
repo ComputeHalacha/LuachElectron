@@ -7,7 +7,7 @@ import Settings from '../Settings';
 export default class EntryList {
   list: Array<Entry>;
 
-  constructor(entryList: Array<Entry>) {
+  constructor(entryList?: Array<Entry>) {
     this.list = entryList || [];
   }
 
@@ -17,7 +17,7 @@ export default class EntryList {
    * @param {Entry} entry
    * @param {Function} [afterwards]
    */
-  add(entry: Entry, afterwards: CallableFunction): number {
+  add(entry: Entry, afterwards?: CallableFunction): number {
     if (!(entry instanceof Entry)) {
       throw 'Only objects of type Entry can be added to the EntryList';
     } else if (!this.list.some(e => e.isSameEntry(entry))) {
@@ -39,7 +39,7 @@ export default class EntryList {
    * an entry where Entry.isSameEntry() returns true is removed.
    * @param {Function} [afterwards] The callback. Supplies the removed entry as an argument.
    */
-  remove(arg: number | Entry, afterwards: CallableFunction) {
+  remove(arg: number | Entry, afterwards?: CallableFunction) {
     let wasRemoved = false;
     let entry = null;
     if (

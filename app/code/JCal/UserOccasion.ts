@@ -16,13 +16,22 @@ enum UserOccasionTypes {
  */
 class UserOccasion {
   title: string;
+
   occasionType: UserOccasionTypes;
+
   dateAbs: number;
+
   color: string;
+
   comments: string;
+
   occasionId: number;
 
   static defaultColor = '#b96';
+
+  private privateJdate: jDate | null = null;
+
+  private privateSdate: Date | null = null;
 
   constructor(
     title: string,
@@ -87,6 +96,8 @@ class UserOccasion {
         }Monthly event on the ${Utils.toSuffixed(
           this.sdate.getDate()
         )} day of each Secular month`;
+      default:
+        return null;
     }
   }
 
@@ -126,18 +137,25 @@ class UserOccasion {
   }
 
   /**
-   * Returns the year of the latest anniversary for thsi occasion.
+   * Returns the year of the latest anniversary for this occasion.
    * Only returns a value for annual events.
    */
   getCurrentYear() {
     const jdate = this.getPreviousInstance();
-    if (this.occasionType === UserOccasionTypes.HebrewDateRecurringYearly) {
+    if (
+      jdate &&
+      this.occasionType === UserOccasionTypes.HebrewDateRecurringYearly
+    ) {
       return jdate.Year - this.jdate.Year;
     }
-    if (this.occasionType === UserOccasionTypes.SecularDateRecurringYearly) {
+    if (
+      jdate &&
+      this.occasionType === UserOccasionTypes.SecularDateRecurringYearly
+    ) {
       const sdate = jdate.getDate();
       return sdate.getFullYear() - this.sdate.getFullYear();
     }
+    return null;
   }
 
   /**
@@ -181,6 +199,8 @@ class UserOccasion {
           sd.setMonth(sd.getMonth() + 1);
         }
         return new jDate(sd);
+      default:
+        return null;
     }
   }
 
@@ -190,7 +210,7 @@ class UserOccasion {
   getPreviousInstance() {
     const nowSd = new Date();
     const nowJd = new jDate(nowSd);
-    let jd: jDate;
+    let jd: jDate | null = null;
     let sd: Date;
     switch (this.occasionType) {
       case UserOccasionTypes.HebrewDateRecurringYearly:
@@ -227,6 +247,8 @@ class UserOccasion {
         }
         jd = new jDate(sd);
         break;
+      default:
+        jd = null;
     }
     return jd;
   }
@@ -273,38 +295,38 @@ class UserOccasion {
    * Get the Jewish Date for the date of this event.
    */
   get jdate() {
-    if (!this._jdate) {
-      this._jdate = new jDate(this.dateAbs);
+    if (!this.privateJdate) {
+      this.privateJdate = new jDate(this.dateAbs);
     }
-    return this._jdate;
+    return this.privateJdate;
   }
 
   /**
    * Set the date of this event by supplying a Jewish Date.
    */
   set jdate(jd) {
-    this._jdate = jd;
+    this.privateJdate = jd;
     this.dateAbs = jd.Abs;
-    this._sdate = jd.getDate();
+    this.privateSdate = jd.getDate();
   }
 
   /**
    * Get the Secular Date for the date of this event.
    */
   get sdate() {
-    if (!this._sdate) {
-      this._sdate = jDate.sdFromAbs(this.dateAbs);
+    if (!this.privateSdate) {
+      this.privateSdate = jDate.sdFromAbs(this.dateAbs);
     }
-    return this._sdate;
+    return this.privateSdate;
   }
 
   /**
    * Set the date of this event by supplying a Javascript Date.
    */
   set sdate(sd) {
-    this._jdate = new jDate(sd);
-    this._sdate = sd;
-    this.dateAbs = this._jdate.Abs;
+    this.privateJdate = new jDate(sd);
+    this.privateSdate = sd;
+    this.dateAbs = this.privateJdate.Abs;
   }
 
   /**
@@ -318,7 +340,7 @@ class UserOccasion {
    * Sorts a list of UserOccasions chronologically
    * @param {[UserOccasion]} occasionList
    */
-  static sortList(occasionList) {
+  static sortList(occasionList: Array<UserOccasion>) {
     return occasionList.sort((a, b) => a.dateAbs - b.dateAbs);
   }
 
@@ -329,7 +351,7 @@ class UserOccasion {
    * @param {jDate} jdate
    * @param {[UserOccasion]} allOccasions
    */
-  static getOccasionsForDate(jdate, allOccasions) {
+  static getOccasionsForDate(jdate: jDate, allOccasions: Array<UserOccasion>) {
     return allOccasions.filter(o => {
       const ojDate = o.jdate;
       switch (o.occasionType) {
@@ -343,17 +365,19 @@ class UserOccasion {
         case UserOccasionTypes.SecularDateRecurringMonthly: {
           const sdate1 = jdate.getDate();
           const sdate2 = ojDate.getDate();
-          // For both secualr occasion types, the day of the month must match
+          // For both secular occasion types, the day of the month must match
           if (sdate1.getDate() !== sdate2.getDate()) {
             return false;
           }
-          // Now that the day matches, for a mothly occasion, the match is confirmed.
+          // Now that the day matches, for a monthly occasion, the match is confirmed.
           return (
             o.occasionType === UserOccasionTypes.SecularDateRecurringMonthly ||
             // For a  yearly occasion, the month must also match
             sdate1.getMonth() === sdate2.getMonth()
           );
         }
+        default:
+          return null;
       }
     });
   }

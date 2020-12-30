@@ -15,7 +15,11 @@ import Settings from '../Settings';
  * @param {NightDay} nightDay
  * @param {Kavuah} cancelKavuah
  */
-function isAfterKavuahStart(date, nightDay, cancelKavuah) {
+function isAfterKavuahStart(
+  date: jDate,
+  nightDay: NightDay,
+  cancelKavuah: Kavuah
+): boolean {
   if (cancelKavuah) {
     const { settingEntry } = cancelKavuah;
     return (
@@ -25,6 +29,7 @@ function isAfterKavuahStart(date, nightDay, cancelKavuah) {
           nightDay > settingEntry.nightDay))
     );
   }
+  return false;
 }
 
 /**
@@ -34,10 +39,15 @@ function isAfterKavuahStart(date, nightDay, cancelKavuah) {
  */
 export default class FlaggedDatesGenerator {
   entries: Array<Entry>;
+
   kavuahs: Array<Kavuah>;
+
   settings: Settings;
+
   cancelKavuah: boolean;
+
   probOnahs: Array<ProblemOnah>;
+
   stopWarningDate: jDate;
 
   constructor(
@@ -63,7 +73,7 @@ export default class FlaggedDatesGenerator {
    * Property Setting "numberMonthsAheadToWarn"
    * @returns {[ProblemOnah]}
    */
-  getProblemOnahs() {
+  getProblemOnahs(): Array<ProblemOnah> {
     // Clean the list
     this.probOnahs = [];
 
@@ -82,7 +92,7 @@ export default class FlaggedDatesGenerator {
     return ProblemOnah.sortProbList(this.probOnahs);
   }
 
-  findOnahBeinunisProblemOnahs(entry, cancelKavuah) {
+  findOnahBeinunisProblemOnahs(entry: Entry, cancelKavuah: Kavuah) {
     // Yom Hachodesh ***************************************************************
     const nextMonth = entry.date.addMonths(1);
     // If Yom Hachodesh was 30 and this month only has 29 days,
@@ -207,7 +217,7 @@ export default class FlaggedDatesGenerator {
     }
     // The Ta"z
     if (this.settings.keepLongerHaflagah) {
-      const probs = [];
+      const probs: Array<ProblemFlag> = [];
       // Go through all earlier entries in the list that have a longer haflaga than this one
       // and that are not kept anyway due to onah beinois,
       for (const e of this.entries.filter(
@@ -245,22 +255,24 @@ export default class FlaggedDatesGenerator {
     }
   }
 
-  findEntryDependentKavuahProblemOnahs(entry) {
+  findEntryDependentKavuahProblemOnahs(entry: Entry) {
     // Kavuah Haflagah - with or without Maayan Pasuach
-    for (const kavuah of this.kavuahs.filter(k =>
-      [KavuahTypes.Haflagah, KavuahTypes.HaflagaMaayanPasuach].includes(
-        k.kavuahType
+    this.kavuahs
+      .filter(k =>
+        [KavuahTypes.Haflagah, KavuahTypes.HaflagaMaayanPasuach].includes(
+          k.kavuahType
+        )
       )
-    )) {
-      const haflagaDate = entry.date.addDays(kavuah.specialNumber - 1);
-      const kavuahHaflaga = new ProblemFlag(
-        haflagaDate,
-        kavuah.settingEntry.nightDay,
-        `Kavuah of ${kavuah.toString()}`
-      );
-      this.addProblem(kavuahHaflaga);
-      this.addOhrZarua(kavuahHaflaga);
-    }
+      .forEach(kavuah => {
+        const haflagaDate = entry.date.addDays(kavuah.specialNumber - 1);
+        const kavuahHaflaga = new ProblemFlag(
+          haflagaDate,
+          kavuah.settingEntry.nightDay,
+          `Kavuah of ${kavuah.toString()}`
+        );
+        this.addProblem(kavuahHaflaga);
+        this.addOhrZarua(kavuahHaflaga);
+      });
 
     // Kavuah of Dilug Haflaga.
     // They are cheshboned from actual entries - not theoretical ones
@@ -315,7 +327,7 @@ export default class FlaggedDatesGenerator {
     }
   }
 
-  add24HourOnah(prob, entry) {
+  add24HourOnah(prob: ProblemFlag, entry?: Entry) {
     if (this.settings.onahBeinunis24Hours) {
       this.addProblem(
         new ProblemFlag(
@@ -328,7 +340,7 @@ export default class FlaggedDatesGenerator {
     }
   }
 
-  addOhrZarua(prob, entry) {
+  addOhrZarua(prob: ProblemFlag, entry?: Entry) {
     // If the user wants to keep the Ohr Zarua  - the previous onah
     if (this.settings.showOhrZeruah) {
       const ohrZarua = prob.onah.previous;
@@ -349,7 +361,7 @@ export default class FlaggedDatesGenerator {
    * @param {ProblemFlag} probFlag
    * @param {Entry} [settingEntry] optional entry to pass on to the _canAddFlaggedDate function.
    */
-  addProblem(probFlag, settingEntry) {
+  addProblem(probFlag: ProblemFlag, settingEntry?: Entry) {
     if (this.canAddFlaggedDate(probFlag, settingEntry)) {
       let probOnah = this.probOnahs.find(po => po.isSameOnah(probFlag.onah));
       if (!probOnah) {
@@ -371,7 +383,7 @@ export default class FlaggedDatesGenerator {
    * there was another Entry between the settingEntry and the problem onah,
    * will cause this function to return false.
    */
-  canAddFlaggedDate(probFlag, settingEntry) {
+  canAddFlaggedDate(probFlag: ProblemFlag, settingEntry?: Entry) {
     const { jdate } = probFlag;
     const { nightDay } = probFlag;
     if (
