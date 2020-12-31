@@ -221,7 +221,8 @@ export default class DataUtils {
    * Add a Location to the list in the database
    * @param {Location} location The location to add
    */
-  static async LocationToDatabase(location: Location) {
+  static async LocationToDatabase(location: Location): Promise<Location> {
+    const loc = location;
     const params = [
       location.Name,
       location.Israel,
@@ -246,11 +247,13 @@ export default class DataUtils {
           [...params, location.locationId]
         );
         log(`Updated Location Id ${location.locationId.toString()}`);
+        return loc;
       } catch (err) {
         warn(
           `Error trying to update Location Id ${location.locationId.toString()} to the database.`
         );
         error(err);
+        return loc;
       }
     } else {
       try {
@@ -266,10 +269,12 @@ export default class DataUtils {
                         VALUES (?,?,?,?,?,?,?)`,
           params
         );
-        location.locationId = results.id;
+        loc.locationId = results.id;
+        return loc;
       } catch (err) {
         warn('Error trying to insert location into the database.');
         error(err);
+        return loc;
       }
     }
   }
@@ -361,7 +366,10 @@ export default class DataUtils {
     return list;
   }
 
-  static async UserOccasionToDatabase(occasion: UserOccasion) {
+  static async UserOccasionToDatabase(
+    occasion: UserOccasion
+  ): Promise<UserOccasion> {
+    const occ = occasion;
     const params = [
       occasion.title,
       occasion.occasionType,
@@ -382,11 +390,13 @@ export default class DataUtils {
           [...params, occasion.occasionId]
         );
         log(`Updated Occasion Id ${occasion.occasionId.toString()}`);
+        return occ;
       } catch (err) {
         warn(
           `Error trying to update Occasion Id ${occasion.occasionId.toString()} to the database.`
         );
         error(err);
+        return occ;
       }
     } else {
       try {
@@ -400,16 +410,17 @@ export default class DataUtils {
                     VALUES (?,?,?,?,?)`,
           params
         );
-        occasion.occasionId = results.id;
+        occ.occasionId = results.id;
         log(
           `New occasion "${occasion.title}" was inserted. OccasionId is ${occasion.occasionId}`
         );
+        return occ;
       } catch (err) {
         warn('Error trying to insert occasion into the database.');
         error(err);
+        return occ;
       }
     }
-    return occasion;
   }
 
   static async DeleteUserOccasion(occasion: UserOccasion) {
@@ -444,9 +455,9 @@ export default class DataUtils {
           kavuahType: KavuahTypes;
           settingEntryId: number;
           specialNumber: number;
-          cancelsOnahBeinunis: any;
-          active: any;
-          ignore: any;
+          cancelsOnahBeinunis: boolean;
+          active: boolean;
+          ignore: boolean;
           kavuahId: number | undefined;
         }) => {
           const kav = new Kavuah(
@@ -496,10 +507,14 @@ export default class DataUtils {
     return list;
   }
 
-  static async KavuahToDatabase(appData: AppData, kavuah: Kavuah) {
+  static async KavuahToDatabase(
+    appData: AppData,
+    kavuah: Kavuah
+  ): Promise<Kavuah> {
     if (!(kavuah.settingEntry && kavuah.settingEntry.hasId)) {
       throw "A kavuah can not be saved to the database unless it's setting entry is already in the database.";
     }
+    const kav = kavuah;
     const params = [
       kavuah.kavuahType,
       kavuah.settingEntry.entryId,
@@ -521,13 +536,15 @@ export default class DataUtils {
                     WHERE kavuahId=?`,
           [...params, kavuah.kavuahId]
         );
-        log(`Updated Kavuah Id ${kavuah.kavuahId.toString()}`);
+        log(`Updated Kavuah Id ${kavuah.kavuahId?.toString()}`);
         appData.updateProbsAndClean();
+        return kav;
       } catch (err) {
         warn(
-          `Error trying to update Kavuah Id ${kavuah.kavuahId.toString()} to the database.`
+          `Error trying to update Kavuah Id ${kavuah.kavuahId?.toString()} to the database.`
         );
         error(err);
+        return kav;
       }
     } else {
       try {
@@ -542,11 +559,13 @@ export default class DataUtils {
                     VALUES (?,?,?,?,?,?)`,
           params
         );
-        kavuah.kavuahId = results.id;
+        kav.kavuahId = results.id;
         appData.addOrRemoveChashItem(kavuah);
+        return kav;
       } catch (err) {
         warn('Error trying to insert kavuah into the database.');
         error(err);
+        return kav;
       }
     }
   }
@@ -568,7 +587,8 @@ export default class DataUtils {
     }
   }
 
-  static async EntryToDatabase(appData: AppData, entry: Entry) {
+  static async EntryToDatabase(appData: AppData, entry: Entry): Promise<Entry> {
+    const ent = entry;
     if (entry.hasId) {
       try {
         await DataUtils.executeSql(
@@ -584,11 +604,13 @@ export default class DataUtils {
         );
         log(`Updated Entry Id ${entry.entryId.toString()}`);
         appData.updateProbsAndClean();
+        return ent;
       } catch (err) {
         warn(
           `Error trying to update entry id ${entry.entryId.toString()} to the database.`
         );
         error(err);
+        return ent;
       }
     } else {
       try {
@@ -602,11 +624,13 @@ export default class DataUtils {
             entry.comments
           ]
         );
-        entry.entryId = results.id;
+        ent.entryId = results.id;
         appData.addOrRemoveChashItem(entry);
+        return ent;
       } catch (err) {
         warn('Error trying to insert entry into the database.');
         error(err);
+        return ent;
       }
     }
   }
@@ -628,7 +652,10 @@ export default class DataUtils {
     }
   }
 
-  static async TaharaEventToDatabase(taharaEvent: TaharaEvent) {
+  static async TaharaEventToDatabase(
+    taharaEvent: TaharaEvent
+  ): Promise<TaharaEvent> {
+    const te = taharaEvent;
     if (taharaEvent.hasId) {
       try {
         await DataUtils.executeSql(
@@ -640,11 +667,13 @@ export default class DataUtils {
           ]
         );
         log(`Updated TaharaEvent Id ${taharaEvent.taharaEventId.toString()}`);
+        return te;
       } catch (err) {
         warn(
           `Error trying to update taharaEvent id ${taharaEvent.taharaEventId.toString()} to the database.`
         );
         error(err);
+        return te;
       }
     } else {
       try {
@@ -652,10 +681,12 @@ export default class DataUtils {
           'INSERT INTO taharaEvents (dateAbs, taharaEventType) VALUES (?, ?)',
           [taharaEvent.jdate.Abs, taharaEvent.taharaEventType]
         );
-        taharaEvent.taharaEventId = results.id;
+        te.taharaEventId = results.id;
+        return te;
       } catch (err) {
         warn('Error trying to insert taharaEvent into the database.');
         error(err);
+        return te;
       }
     }
   }
@@ -748,7 +779,7 @@ export default class DataUtils {
     results.list.forEach(
       (l: {
         name: string;
-        israel: any;
+        israel: boolean;
         latitude: number;
         longitude: number;
         utcoffset: number;
@@ -784,9 +815,10 @@ export default class DataUtils {
     sql: string,
     values?: Array<string | number | Date | boolean | null | undefined>
   ) {
-    let resultsList = [];
-    let insertId;
-    let db: Database;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resultsList: any[] = [];
+    let insertId = -1;
+    let db: unknown;
 
     DataUtils.assureDatabaseExists();
 
@@ -801,14 +833,15 @@ export default class DataUtils {
          Starting execution of ${sql} - with values ${values}`
       );
       if (sql.toUpperCase().startsWith('SELECT')) {
-        resultsList = await db.all(sql, values);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resultsList = await database.all<any[]>(sql, values);
         if (resultsList) {
           log(
             `0121 - the sql was executed successfully - ${resultsList.length} rows returned`
           );
         }
       } else {
-        const results = await db.run(sql, values);
+        const results = await database.run(sql, values);
         if (results.changes) {
           log(
             `0122 - no-result sql was executed successfully - ${results.changes} rows affected`
@@ -824,7 +857,7 @@ export default class DataUtils {
     } catch (err) {
       warn(`0124 - error opening database - ${DataUtils.databasePath}`);
       error(err);
-      await DataUtils.closeDatabase(db);
+      await DataUtils.closeDatabase(db as sqlite3.Database);
     }
 
     return { list: resultsList, id: insertId };
@@ -869,7 +902,7 @@ export default class DataUtils {
       );
       fs.mkdir(globals.APPDATA_FOLDER, { recursive: true }, err => {
         if (err) {
-          error(err);
+          error(err.toString());
           throw err;
         }
       });

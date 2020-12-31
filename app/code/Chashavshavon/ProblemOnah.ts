@@ -9,6 +9,7 @@ import JDate from '../JCal/JDate';
  */
 export default class ProblemOnah extends Onah {
   flagsList: ProblemFlag[];
+
   /**
    * @param {JDate} jdate
    * @param {NightDay} nightDay

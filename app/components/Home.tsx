@@ -17,7 +17,6 @@ import KavuahsView from './KavuahsView';
 import OccasionsView from './OccasionsView';
 import LuachNav from './LuachNav';
 import styles from '../scss/Home.scss';
-import { app } from 'electron';
 
 export default function Home() {
   const [state] = useAppGlobalState();

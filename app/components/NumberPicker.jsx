@@ -24,7 +24,7 @@ export default function NumberPicker(props) {
     <DropdownButton
       title={getValueText(value)}
       flip="true"
-      focusFirstItemOnShow={true}
+      focusFirstItemOnShow
       variant="secondary"
       style={style || { display: 'inline-block' }}
       className={className}

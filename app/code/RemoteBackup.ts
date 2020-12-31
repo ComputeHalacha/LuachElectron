@@ -86,25 +86,26 @@ export default class RemoteBackup {
     ).toString('base64');
   }
 
-  async request(url?: string, method: string = 'GET', data: object = {}) {
-    let responseData;
+  async request(url?: string, method = 'GET', data: object = {}) {
+    let responseData,
+      urlString = url;
     try {
-      url = serverURL + (url ? `/${url}` : '');
+      urlString = serverURL + (url ? `/${url}` : '');
       const headers = await this.getReqHeaders(),
         options = {
           method: method || 'GET',
           data,
           headers: new Headers(headers)
         },
-        response = await fetch(url, options);
-      log(`Http Request: ${method || 'GET'}  ${url}`, response);
+        response = await fetch(urlString, options);
+      log(`Http Request: ${method || 'GET'}  ${urlString}`, response);
 
       responseData = await response.json();
       if (responseData && responseData.Succeeded) {
         log(
-          `${options.method} ${url} - Response Succeeded: ${JSON.stringify(
-            responseData
-          )}`,
+          `${
+            options.method
+          } ${urlString} - Response Succeeded: ${JSON.stringify(responseData)}`,
           responseData
         );
       } else {
@@ -115,7 +116,7 @@ export default class RemoteBackup {
       }
     } catch (err) {
       error(
-        `${method || 'GET'} ${url} - Http request error: ${JSON.stringify(
+        `${method || 'GET'} ${urlString} - Http request error: ${JSON.stringify(
           err
         )}`,
         err,
@@ -232,6 +233,7 @@ export default class RemoteBackup {
         log(`Set the DataUtils database path to ${newPath}`);
         // Reset the global application data object
         appData = await AppData.fromDatabase();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (global as any).GlobalAppData = appData;
         // Reload the global app data from the newly overwritten database file
         log('Reloaded Global.AppData from new database');
@@ -252,9 +254,9 @@ export default class RemoteBackup {
 
   static async DoBackupNoMatterWhat(localStorage: LocalStorage) {
     const remoteBackup = new RemoteBackup();
-    if (!localStorage) localStorage = await remoteBackup.getLocalStorage();
-    else remoteBackup.localStorage = localStorage;
-    if (!localStorage.remoteUserName || !localStorage.remotePassword) {
+    const ls = localStorage || (await remoteBackup.getLocalStorage());
+    remoteBackup.localStorage = ls;
+    if (!ls.remoteUserName || !ls.remotePassword) {
       return {
         success: false,
         message:
@@ -280,6 +282,7 @@ export default class RemoteBackup {
       );
       return false;
     }
+    // eslint-disable-next-line no-await-in-loop
     while (await remoteBackup.accountExists()) {
       localStorage.remoteUserName = getRandomString(8);
       localStorage.remotePassword = getRandomString(8);

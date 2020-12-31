@@ -23,8 +23,11 @@ interface Day {
  */
 export default class Month {
   isJdate: boolean;
+
   appData: AppData;
+
   date: JDate | Date;
+
   /**
    * @param {JDate | Date} date
    * @param {AppData} appData
